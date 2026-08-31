@@ -1,4 +1,4 @@
-       <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="hi">
 <head>
   <meta charset="UTF-8">
@@ -6,76 +6,208 @@
   <title>Khushi Bazaar</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-50 text-gray-800 font-sans">
+<body class="bg-gray-50 text-gray-800 font-sans min-h-screen flex flex-col">
 
+  <!-- Header -->
   <header class="bg-indigo-600 text-white sticky top-0 z-50 shadow-md">
     <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
-      <h1 class="text-2xl font-bold">🛍️ Khushi Bazaar</h1>
-      <a href="#products" class="bg-white text-indigo-600 font-semibold px-4 py-2 rounded-lg shadow">
-        दुकान देखें
-      </a>
+      <h1 class="text-2xl font-bold flex items-center gap-2">🛍️ Khushi Bazaar</h1>
+      <span class="text-xs bg-indigo-700 px-3 py-1 rounded-full text-indigo-100">Live Store</span>
     </div>
   </header>
 
-  <section class="bg-indigo-50 py-12 px-4 text-center">
-    <h2 class="text-3xl font-extrabold text-indigo-900 mb-3">खुशी बाजार में आपका स्वागत है!</h2>
-    <p class="text-gray-600 text-lg max-w-xl mx-auto mb-6">बेहतरीन क्वालिटी के प्रोडक्ट्स, सबसे कम दामों में। आज ही अपना पसंदीदा सामान ऑर्डर करें।</p>
+  <!-- Main Banner -->
+  <section class="bg-indigo-50 py-8 px-4 text-center border-b border-indigo-100">
+    <h2 class="text-3xl font-extrabold text-indigo-900 mb-2">खुशी बाजार में आपका स्वागत है!</h2>
+    <p id="category-banner-desc" class="text-gray-600 text-base max-w-2xl mx-auto">
+      बेहतरीन क्वालिटी के प्रोडक्ट्स, सबसे कम दामों में। अपनी पसंदीदा कैटेगरी चुनें और ऑर्डर करें।
+    </p>
   </section>
 
-  <main id="products" class="max-w-6xl mx-auto px-4 py-12">
-    <h3 class="text-2xl font-bold mb-8 text-gray-900 border-b-2 border-indigo-500 pb-2 inline-block">हमारे खास प्रोडक्ट्स</h3>
-    
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      
-      <div class="bg-white rounded-2xl shadow-sm p-4 border border-gray-100 flex flex-col justify-between">
-        <div>
-          <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&q=80&w=400" alt="Smart Watch" class="w-full h-48 object-cover rounded-xl mb-4">
-          <h4 class="font-bold text-lg mb-1">स्मार्ट वॉच (Smart Watch)</h4>
-          <p class="text-sm text-gray-500 mb-3">डिजिटल डिस्प्ले, फिटनेस ट्रैकर और लंबी बैटरी लाइफ।</p>
-        </div>
-        <div class="flex items-center justify-between mt-4">
-          <span class="text-xl font-bold text-indigo-600">₹1,299</span>
-          <a href="https://wa.me/?text=Hi%2C%20I%20want%20to%20buy%20Smart%20Watch%20from%20Khushi%20Bazaar" target="_blank" class="bg-green-500 text-white px-4 py-2 rounded-lg font-medium text-sm">
-            WhatsApp पर खरीदें
-          </a>
-        </div>
-      </div>
+  <!-- Category Filter Bar -->
+  <nav class="max-w-6xl mx-auto px-4 pt-6">
+    <div class="flex items-center gap-2 overflow-x-auto pb-2" id="categories-container">
+      <button onclick="filterCategory('All')" id="btn-All" class="cat-btn bg-indigo-600 text-white px-5 py-2 rounded-full text-sm font-semibold whitespace-nowrap shadow-sm">
+        सब देखें (All)
+      </button>
+    </div>
+  </nav>
 
-      <div class="bg-white rounded-2xl shadow-sm p-4 border border-gray-100 flex flex-col justify-between">
-        <div>
-          <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&q=80&w=400" alt="Headphones" class="w-full h-48 object-cover rounded-xl mb-4">
-          <h4 class="font-bold text-lg mb-1">वायरलेस हेडफोन (Wireless Headphones)</h4>
-          <p class="text-sm text-gray-500 mb-3">सुपर बेस और नॉइज़ कैंसिलेशन के साथ।</p>
-        </div>
-        <div class="flex items-center justify-between mt-4">
-          <span class="text-xl font-bold text-indigo-600">₹899</span>
-          <a href="https://wa.me/?text=Hi%2C%20I%20want%20to%20buy%20Wireless%20Headphones%20from%20Khushi%20Bazaar" target="_blank" class="bg-green-500 text-white px-4 py-2 rounded-lg font-medium text-sm">
-            WhatsApp पर खरीदें
-          </a>
-        </div>
-      </div>
+  <!-- Products Grid -->
+  <main class="max-w-6xl mx-auto px-4 py-8 flex-grow w-full">
+    <div id="loading" class="text-center py-12">
+      <div class="inline-block animate-spin rounded-full h-10 w-10 border-4 border-indigo-600 border-t-transparent"></div>
+      <p class="mt-3 text-gray-500 font-medium">गूगल शीट से सामान लोड हो रहा है...</p>
+    </div>
 
-      <div class="bg-white rounded-2xl shadow-sm p-4 border border-gray-100 flex flex-col justify-between">
-        <div>
-          <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&q=80&w=400" alt="Sports Shoes" class="w-full h-48 object-cover rounded-xl mb-4">
-          <h4 class="font-bold text-lg mb-1">स्पोर्ट्स शूज़ (Sports Shoes)</h4>
-          <p class="text-sm text-gray-500 mb-3">आरामदायक और स्टाइलिश रनिंग शूज़।</p>
-        </div>
-        <div class="flex items-center justify-between mt-4">
-          <span class="text-xl font-bold text-indigo-600">₹1,499</span>
-          <a href="https://wa.me/?text=Hi%2C%20I%20want%20to%20buy%20Sports%20Shoes%20from%20Khushi%20Bazaar" target="_blank" class="bg-green-500 text-white px-4 py-2 rounded-lg font-medium text-sm">
-            WhatsApp पर खरीदें
-          </a>
-        </div>
-      </div>
+    <div id="products-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 hidden">
+      <!-- Dynamic Products Will Render Here -->
+    </div>
 
+    <div id="no-products" class="hidden text-center py-12 text-gray-500">
+      इस कैटेगरी में अभी कोई सामान उपलब्ध नहीं है।
     </div>
   </main>
 
-  <footer class="bg-gray-900 text-gray-400 py-8 text-center text-sm">
-    <p>© Khushi Bazaar. All rights reserved.</p>
+  <footer class="bg-gray-900 text-gray-400 py-6 text-center text-sm mt-auto">
+    <p>© Khushi Bazaar. Powered by Google Sheets.</p>
   </footer>
 
+  <script>
+    const SHEET_ID = '1lnPDL-dkaogbG7cQOsJNm8a_kysIUjEIUqlYTbvEl-Y';
+    let allProducts = [];
+    let categoryMap = {}; 
+    let currentCategory = 'All';
+
+    async function fetchGVizData(sheetName) {
+      try {
+        const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`;
+        const res = await fetch(url);
+        const text = await res.text();
+        const jsonMatch = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\);/);
+        if (!jsonMatch) return [];
+        const data = JSON.parse(jsonMatch[1]);
+        
+        const cols = data.table.cols.map(c => c && c.label ? c.label.trim().toLowerCase() : '');
+        const rows = data.table.rows || [];
+
+        return rows.map(r => {
+          let obj = {};
+          r.c.forEach((cell, idx) => {
+            const key = cols[idx] || `col_${idx}`;
+            const val = cell ? (cell.v !== null && cell.v !== undefined ? cell.v : (cell.f || '')) : '';
+            obj[key] = val;
+            obj[`col_${idx}`] = val;
+          });
+          return obj;
+        });
+      } catch(e) {
+        console.error('Fetch error:', e);
+        return [];
+      }
+    }
+
+    async function initStore() {
+      document.getElementById('loading').classList.remove('hidden');
+      
+      let prodRows = await fetchGVizData('Sheet1');
+      if (!prodRows.length) prodRows = await fetchGVizData('Products');
+      
+      let catRows = await fetchGVizData('Sheet2');
+      if (!catRows.length) catRows = await fetchGVizData('Categories');
+
+      // Process Categories
+      catRows.forEach(row => {
+        const catName = row.category || row.col_0 || '';
+        const catDesc = row.categorydescription || row.description || row.col_1 || '';
+        if (catName) {
+          categoryMap[catName.toString().trim()] = catDesc.toString().trim();
+        }
+      });
+
+      // Process Products
+      allProducts = prodRows.map(row => {
+        return {
+          name: row.name || row.col_0 || 'Product',
+          category: (row.category || row.col_1 || 'General').toString().trim(),
+          price: row.price || row.col_2 || '0',
+          image: row.image || row.img || row.col_3 || 'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=400',
+          description: row.description || row.desc || row.col_4 || '',
+          phone: row.phone || row.mobile || row.col_5 || '919876543210'
+        };
+      }).filter(p => p.name && p.name.toLowerCase() !== 'name');
+
+      renderCategories();
+      renderProducts();
+      document.getElementById('loading').classList.add('hidden');
+      document.getElementById('products-grid').classList.remove('hidden');
+    }
+
+    function renderCategories() {
+      const catContainer = document.getElementById('categories-container');
+      
+      const uniqueCats = new Set(['All']);
+      allProducts.forEach(p => { if(p.category) uniqueCats.add(p.category); });
+      Object.keys(categoryMap).forEach(c => uniqueCats.add(c));
+
+      let html = `<button onclick="filterCategory('All')" id="btn-All" class="cat-btn bg-indigo-600 text-white px-5 py-2 rounded-full text-sm font-semibold whitespace-nowrap shadow-sm">सब देखें (All)</button>`;
+
+      uniqueCats.forEach(cat => {
+        if (cat !== 'All') {
+          html += `<button onclick="filterCategory('${cat.replace(/'/g, "\\'")}')" id="btn-${cat}" class="cat-btn bg-white text-gray-700 hover:bg-gray-100 border border-gray-200 px-5 py-2 rounded-full text-sm font-semibold whitespace-nowrap shadow-sm transition">${cat}</button>`;
+        }
+      });
+
+      catContainer.innerHTML = html;
+    }
+
+    function filterCategory(catName) {
+      currentCategory = catName;
+
+      document.querySelectorAll('.cat-btn').forEach(btn => {
+        btn.className = 'cat-btn bg-white text-gray-700 hover:bg-gray-100 border border-gray-200 px-5 py-2 rounded-full text-sm font-semibold whitespace-nowrap shadow-sm transition';
+      });
+      const activeBtn = document.getElementById(`btn-${catName}`);
+      if (activeBtn) {
+        activeBtn.className = 'cat-btn bg-indigo-600 text-white px-5 py-2 rounded-full text-sm font-semibold whitespace-nowrap shadow-sm';
+      }
+
+      const bannerDesc = document.getElementById('category-banner-desc');
+      if (catName === 'All') {
+        bannerDesc.innerText = 'बेहतरीन क्वालिटी के प्रोडक्ट्स, सबसे कम दामों में। अपनी पसंदीदा कैटेगरी चुनें और ऑर्डर करें।';
+      } else if (categoryMap[catName]) {
+        bannerDesc.innerText = categoryMap[catName];
+      } else {
+        bannerDesc.innerText = `${catName} कैटेगरी के बेहतरीन प्रोडक्ट्स यहाँ देखें।`;
+      }
+
+      renderProducts();
+    }
+
+    function renderProducts() {
+      const grid = document.getElementById('products-grid');
+      const noProds = document.getElementById('no-products');
+
+      const filtered = currentCategory === 'All' 
+        ? allProducts 
+        : allProducts.filter(p => p.category.toLowerCase() === currentCategory.toLowerCase());
+
+      if (filtered.length === 0) {
+        grid.classList.add('hidden');
+        noProds.classList.remove('hidden');
+        return;
+      }
+
+      noProds.classList.add('hidden');
+      grid.classList.remove('hidden');
+
+      grid.innerHTML = filtered.map(p => {
+        const cleanPhone = String(p.phone).replace(/\D/g, '');
+        const msg = encodeURIComponent(`नमस्ते! मैं Khushi Bazaar से "${p.name}" (मूल्य: ₹${p.price}) खरीदना चाहता/चाहती हूँ।`);
+        const waUrl = `https://wa.me/${cleanPhone}?text=${msg}`;
+
+        return `
+          <div class="bg-white rounded-2xl shadow-sm p-4 border border-gray-100 flex flex-col justify-between hover:shadow-md transition">
+            <div>
+              <div class="relative mb-4">
+                <img src="${p.image}" alt="${p.name}" class="w-full h-48 object-cover rounded-xl" onerror="this.src='https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=400'">
+                <span class="absolute top-2 right-2 bg-indigo-100 text-indigo-800 text-xs font-semibold px-2.5 py-1 rounded-full border border-indigo-200">${p.category}</span>
+              </div>
+              <h4 class="font-bold text-lg mb-1 text-gray-900">${p.name}</h4>
+              <p class="text-sm text-gray-500 mb-3">${p.description}</p>
+            </div>
+            <div class="flex items-center justify-between mt-4 pt-3 border-t border-gray-50">
+              <span class="text-xl font-bold text-indigo-600">₹${p.price}</span>
+              <a href="${waUrl}" target="_blank" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-1 shadow-sm">
+                💬 WhatsApp पर खरीदें
+              </a>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    window.onload = initStore;
+  </script>
 </body>
 </html>
-      
