@@ -1,45 +1,81 @@
-<!doctype html>
-<html lang="en">
- <head>
+       <!DOCTYPE html>
+<html lang="hi">
+<head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Loading...</title>
-  <style>
-        body {
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-            height: 100vh;
-        }
-        iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
-    </style>
- </head>
- <body>
-  <iframe id="contentFrame" src="https://app.emergent.sh/loading-preview?host=khushi-bazaar.preview.emergentagent.com" allowfullscreen></iframe>
-  <script>
-        // Listen for messages from the iframe
-        window.addEventListener('message', function(event) {
+  <title>Khushi Bazaar</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans">
 
-        	console.log(event.origin);
-            // Optional: Add origin check for security
-            // if (!['https://dev.emergentagent.com', 'https://app.emergent.sh'].includes(event.origin)) return;
+  <header class="bg-indigo-600 text-white sticky top-0 z-50 shadow-md">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+      <h1 class="text-2xl font-bold">🛍️ Khushi Bazaar</h1>
+      <a href="#products" class="bg-white text-indigo-600 font-semibold px-4 py-2 rounded-lg shadow">
+        दुकान देखें
+      </a>
+    </div>
+  </header>
 
-            if (event.data && event.data.type === 'reload') {
-                const iframe = document.getElementById('contentFrame');
-                window.location.reload();
-            }
+  <section class="bg-indigo-50 py-12 px-4 text-center">
+    <h2 class="text-3xl font-extrabold text-indigo-900 mb-3">खुशी बाजार में आपका स्वागत है!</h2>
+    <p class="text-gray-600 text-lg max-w-xl mx-auto mb-6">बेहतरीन क्वालिटी के प्रोडक्ट्स, सबसे कम दामों में। आज ही अपना पसंदीदा सामान ऑर्डर करें।</p>
+  </section>
 
-            if (event.data && event.data.type === 'url') {
-                const iframe = document.getElementById('contentFrame');
-                window.open(event.data.url, '_blank');
-            }
-        });
-    </script>
-  <script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a339409d8b3a8019',t:'MTc4ODE1MDEyOA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
-  <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v3d52b47920f24c319d37e2661827c42b1787588026925" integrity="sha512-d9sL6GJLXn6fInD1+TVXhTcQOsmxeHfmHAvwGDIxp5TO+uo1fiWW7mHomMj4MLRlCsJDTqXzWLHJFFlPCEIj/A==" data-cf-beacon="{&quot;version&quot;:&quot;2024.11.0&quot;,&quot;token&quot;:&quot;7f7b0fd8732c4326aae4b9d58d5c514a&quot;}" crossorigin="anonymous"></script>
- </body>
+  <main id="products" class="max-w-6xl mx-auto px-4 py-12">
+    <h3 class="text-2xl font-bold mb-8 text-gray-900 border-b-2 border-indigo-500 pb-2 inline-block">हमारे खास प्रोडक्ट्स</h3>
+    
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      
+      <div class="bg-white rounded-2xl shadow-sm p-4 border border-gray-100 flex flex-col justify-between">
+        <div>
+          <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&q=80&w=400" alt="Smart Watch" class="w-full h-48 object-cover rounded-xl mb-4">
+          <h4 class="font-bold text-lg mb-1">स्मार्ट वॉच (Smart Watch)</h4>
+          <p class="text-sm text-gray-500 mb-3">डिजिटल डिस्प्ले, फिटनेस ट्रैकर और लंबी बैटरी लाइफ।</p>
+        </div>
+        <div class="flex items-center justify-between mt-4">
+          <span class="text-xl font-bold text-indigo-600">₹1,299</span>
+          <a href="https://wa.me/?text=Hi%2C%20I%20want%20to%20buy%20Smart%20Watch%20from%20Khushi%20Bazaar" target="_blank" class="bg-green-500 text-white px-4 py-2 rounded-lg font-medium text-sm">
+            WhatsApp पर खरीदें
+          </a>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl shadow-sm p-4 border border-gray-100 flex flex-col justify-between">
+        <div>
+          <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&q=80&w=400" alt="Headphones" class="w-full h-48 object-cover rounded-xl mb-4">
+          <h4 class="font-bold text-lg mb-1">वायरलेस हेडफोन (Wireless Headphones)</h4>
+          <p class="text-sm text-gray-500 mb-3">सुपर बेस और नॉइज़ कैंसिलेशन के साथ।</p>
+        </div>
+        <div class="flex items-center justify-between mt-4">
+          <span class="text-xl font-bold text-indigo-600">₹899</span>
+          <a href="https://wa.me/?text=Hi%2C%20I%20want%20to%20buy%20Wireless%20Headphones%20from%20Khushi%20Bazaar" target="_blank" class="bg-green-500 text-white px-4 py-2 rounded-lg font-medium text-sm">
+            WhatsApp पर खरीदें
+          </a>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl shadow-sm p-4 border border-gray-100 flex flex-col justify-between">
+        <div>
+          <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&q=80&w=400" alt="Sports Shoes" class="w-full h-48 object-cover rounded-xl mb-4">
+          <h4 class="font-bold text-lg mb-1">स्पोर्ट्स शूज़ (Sports Shoes)</h4>
+          <p class="text-sm text-gray-500 mb-3">आरामदायक और स्टाइलिश रनिंग शूज़।</p>
+        </div>
+        <div class="flex items-center justify-between mt-4">
+          <span class="text-xl font-bold text-indigo-600">₹1,499</span>
+          <a href="https://wa.me/?text=Hi%2C%20I%20want%20to%20buy%20Sports%20Shoes%20from%20Khushi%20Bazaar" target="_blank" class="bg-green-500 text-white px-4 py-2 rounded-lg font-medium text-sm">
+            WhatsApp पर खरीदें
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="bg-gray-900 text-gray-400 py-8 text-center text-sm">
+    <p>© Khushi Bazaar. All rights reserved.</p>
+  </footer>
+
+</body>
 </html>
+      
