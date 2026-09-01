@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+      <!DOCTYPE html>
 <html lang="hi">
 <head>
   <meta charset="UTF-8">
@@ -110,11 +110,8 @@
 
   <!-- ⚙️ जावास्क्रिप्ट लॉजिक -->
   <script>
-    // -----------------------------------------------------------------
-    // आपकी सेटिंग्स (व्हाट्सएप नंबर सेट कर दिया गया है)
-    // -----------------------------------------------------------------
     const SELLER_PHONE = "917970748217"; 
-    const GOOGLE_SHEET_URL = ""; // 👈 अगर गूगल शीट का लिंक हो, तो यहाँ "" के बीच डाल दें
+    const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbwnEusIi7QKf2joA5_bbMc1yJwDiknfO7B3dYA0QahlvqebiI22bbDLfRAbSIiEZMeS/exec";
 
     const ZONE_RULES = {
       "1": { name: "1.5 KM के अंदर", minFree: 199, charge: 15 },
@@ -135,9 +132,7 @@
         } else {
           allProducts = [
             { id: "1", name: "ताज़ा अमूल दूध 1L", price: 66, mrp: 70, image: "https://via.placeholder.com/150" },
-            { id: "2", name: "फॉर्च्यून रिफाइंड तेल 1L", price: 135, mrp: 150, image: "https://via.placeholder.com/150" },
-            { id: "3", name: "आशीर्वाद आटा 5KG", price: 245, mrp: 270, image: "https://via.placeholder.com/150" },
-            { id: "4", name: "टाटा नमक 1KG", price: 28, mrp: 30, image: "https://via.placeholder.com/150" }
+            { id: "2", name: "फॉर्च्यून रिफाइंड तेल 1L", price: 135, mrp: 150, image: "https://via.placeholder.com/150" }
           ];
         }
         renderProducts(allProducts);
@@ -334,7 +329,7 @@
       msg += `-----------------------------------\n\n`;
       msg += `कृपया मेरा ऑर्डर कन्फर्म करें। धन्यवाद!`;
 
-      const cleanPhone = String(SELLER_PHONE).replace(/\D/g, '');
+   const cleanPhone = String(SELLER_PHONE).replace(/\D/g, '');
       const waUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`;
       window.open(waUrl, '_blank');
     }
