@@ -1,9 +1,15 @@
-<!DOCTYPE html>
+  <!DOCTYPE html>
 <html lang="hi">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Khushi Bazaar</title>
+  <title>Khushi Bazaar - सबसे कम दाम में बेहतरीन सामान</title>
+
+  <!-- Open Graph Meta Tags (WhatsApp & Social Link Preview) -->
+  <meta property="og:title" content="Khushi Bazaar - सबसे कम दाम में सामान" />
+  <meta property="og:description" content="बेहतरीन क्वालिटी के प्रोडक्ट्स ऑनलाइन कार्ट में जोड़ें और सीधे व्हाट्सएप पर ऑर्डर करें!" />
+  <meta property="og:type" content="website" />
+
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-50 text-gray-800 font-sans min-h-screen flex flex-col pb-24 md:pb-8">
@@ -21,16 +27,27 @@
     </div>
   </header>
 
-  <!-- Main Banner -->
-  <section class="bg-indigo-50 py-8 px-4 text-center border-b border-indigo-100">
-    <h2 class="text-3xl font-extrabold text-indigo-900 mb-2">खुशी बाजार में आपका स्वागत है!</h2>
-    <p id="category-banner-desc" class="text-gray-600 text-base max-w-2xl mx-auto">
+  <!-- Main Banner & Search Bar -->
+  <section class="bg-indigo-50 py-6 px-4 text-center border-b border-indigo-100">
+    <h2 class="text-2xl md:text-3xl font-extrabold text-indigo-900 mb-2">खुशी बाजार में आपका स्वागत है!</h2>
+    <p id="category-banner-desc" class="text-gray-600 text-sm md:text-base max-w-2xl mx-auto mb-4">
       बेहतरीन क्वालिटी के प्रोडक्ट्स, सबसे कम दामों में। अपने पसंदीदा सामान कार्ट में जोड़ें और एक साथ ऑर्डर करें।
     </p>
+
+    <!-- 🔍 नया सर्च बार -->
+    <div class="max-w-md mx-auto">
+      <input 
+        type="text" 
+        id="search-input" 
+        oninput="applyFilters()" 
+        placeholder="🔍 सामान खोजें (उदा: चीनी, तेल, साबुन)..." 
+        class="w-full px-4 py-2.5 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm shadow-sm"
+      >
+    </div>
   </section>
 
   <!-- Category Filter Bar -->
-  <nav class="max-w-6xl mx-auto px-4 pt-6">
+  <nav class="max-w-6xl mx-auto px-4 pt-4">
     <div class="flex items-center gap-2 overflow-x-auto pb-2" id="categories-container">
       <button onclick="filterCategory('All')" id="btn-All" class="cat-btn bg-indigo-600 text-white px-5 py-2 rounded-full text-sm font-semibold whitespace-nowrap shadow-sm">
         सब देखें (All)
@@ -39,10 +56,17 @@
   </nav>
 
   <!-- Products Grid -->
-  <main class="max-w-6xl mx-auto px-4 py-8 flex-grow w-full">
+  <main class="max-w-6xl mx-auto px-4 py-6 flex-grow w-full">
+    <!-- Loading State -->
     <div id="loading" class="text-center py-12">
       <div class="inline-block animate-spin rounded-full h-10 w-10 border-4 border-indigo-600 border-t-transparent"></div>
       <p class="mt-3 text-gray-500 font-medium">गूगल शीट से सामान लोड हो रहा है...</p>
+    </div>
+
+    <!-- Error State -->
+    <div id="error-msg" class="hidden text-center py-12 text-red-600">
+      <p class="text-xl font-bold">⚠️ सामान लोड करने में समस्या आ रही है!</p>
+      <p class="text-sm text-gray-500 mt-1">कृपया अपना इंटरनेट कनेक्शन चेक करें या पेज रीफ्रेश करें।</p>
     </div>
 
     <div id="products-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 hidden">
@@ -50,7 +74,7 @@
     </div>
 
     <div id="no-products" class="hidden text-center py-12 text-gray-500">
-      इस कैटेगरी में अभी कोई सामान उपलब्ध नहीं है।
+      इस नाम या कैटेगरी में कोई सामान उपलब्ध नहीं है।
     </div>
   </main>
 
@@ -80,12 +104,21 @@
         <!-- Cart Items Dynamic Render -->
       </div>
 
-      <!-- Modal Footer -->
+      <!-- Modal Footer & Customer Form -->
       <div class="p-5 bg-gray-50 border-t border-gray-200">
-        <div class="flex justify-between items-center mb-4">
+        <div class="flex justify-between items-center mb-3">
           <span class="text-gray-600 font-semibold">कुल राशि (Total Amount):</span>
           <span class="text-2xl font-bold text-indigo-600" id="cart-grand-total">₹0</span>
         </div>
+
+        <!-- 📦 नया डिलीवरी एड्रेस फ़ॉर्म -->
+        <div id="customer-form-section" class="mb-4 pt-3 border-t border-gray-200">
+          <h4 class="text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">📦 डिलीवरी का पता दर्ज करें:</h4>
+          <input type="text" id="cust-name" placeholder="आपका पूरा नाम *" class="w-full text-sm p-2 mb-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          <input type="tel" id="cust-phone" placeholder="मोबाइल नंबर (WhatsApp) *" class="w-full text-sm p-2 mb-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          <textarea id="cust-address" placeholder="पूरा पता (मकान नं., गली/चौक, लैंडमार्क) *" rows="2" class="w-full text-sm p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+        </div>
+
         <button onclick="sendWhatsAppOrder()" id="whatsapp-order-btn" class="w-full bg-green-500 hover:bg-green-600 text-white py-3.5 rounded-xl font-bold text-center text-base flex justify-center items-center gap-2 shadow-md">
           💬 WhatsApp पर ऑर्डर भेजें
         </button>
@@ -103,8 +136,8 @@
     let allProducts = [];
     let categoryMap = {}; 
     let currentCategory = 'All';
-    let cart = {}; // Key: Product Name, Value: { product object, quantity }
-    let sellerPhone = '919876543210';
+    let cart = {}; 
+    let sellerPhone = '919876543210'; // अगर आपकी गूगल शीट में नंबर होगा तो यह अपने आप अपडेट हो जाएगा
 
     async function fetchGVizData(sheetName) {
       try {
@@ -136,12 +169,19 @@
 
     async function initStore() {
       document.getElementById('loading').classList.remove('hidden');
+      document.getElementById('error-msg').classList.add('hidden');
       
       let prodRows = await fetchGVizData('Sheet1');
       if (!prodRows.length) prodRows = await fetchGVizData('Products');
       
       let catRows = await fetchGVizData('Sheet2');
       if (!catRows.length) catRows = await fetchGVizData('Categories');
+
+      if (!prodRows || prodRows.length === 0) {
+        document.getElementById('loading').classList.add('hidden');
+        document.getElementById('error-msg').classList.remove('hidden');
+        return;
+      }
 
       catRows.forEach(row => {
         const catName = row.category || row.col_0 || '';
@@ -167,7 +207,7 @@
       }).filter(p => p.name && p.name.toLowerCase() !== 'name');
 
       renderCategories();
-      renderProducts();
+      applyFilters();
       document.getElementById('loading').classList.add('hidden');
       document.getElementById('products-grid').classList.remove('hidden');
     }
@@ -209,16 +249,20 @@
         bannerDesc.innerText = `${catName} कैटेगरी के बेहतरीन प्रोडक्ट्स यहाँ देखें।`;
       }
 
-      renderProducts();
+      applyFilters();
     }
 
-    function renderProducts() {
+    // 🔍 सर्च और कैटेगरी फ़िल्टर को मिलाकर प्रोडक्ट्स दिखाना
+    function applyFilters() {
+      const searchTerm = document.getElementById('search-input').value.toLowerCase().trim();
       const grid = document.getElementById('products-grid');
       const noProds = document.getElementById('no-products');
 
-      const filtered = currentCategory === 'All' 
-        ? allProducts 
-        : allProducts.filter(p => p.category.toLowerCase() === currentCategory.toLowerCase());
+      const filtered = allProducts.filter(p => {
+        const matchesCat = currentCategory === 'All' || p.category.toLowerCase() === currentCategory.toLowerCase();
+        const matchesSearch = p.name.toLowerCase().includes(searchTerm) || p.description.toLowerCase().includes(searchTerm);
+        return matchesCat && matchesSearch;
+      });
 
       if (filtered.length === 0) {
         grid.classList.add('hidden');
@@ -245,7 +289,7 @@
             <div class="flex items-center justify-between mt-4 pt-3 border-t border-gray-50">
               <span class="text-xl font-bold text-indigo-600">₹${p.price}</span>
               
-              <div id="btn-container-${p.name.replace(/\s+/g, '-')}">
+              <div>
                 ${inCartQty > 0 ? `
                   <div class="flex items-center gap-2 bg-indigo-50 border border-indigo-200 rounded-lg p-1">
                     <button onclick="changeQty('${p.name.replace(/'/g, "\\'")}', -1)" class="w-7 h-7 bg-white rounded font-bold text-indigo-600 shadow-sm">-</button>
@@ -274,7 +318,7 @@
         cart[pName].qty += 1;
       }
       updateCartUI();
-      renderProducts();
+      applyFilters();
     }
 
     function changeQty(pName, delta) {
@@ -285,7 +329,7 @@
         }
       }
       updateCartUI();
-      renderProducts();
+      applyFilters();
     }
 
     function updateCartUI() {
@@ -321,6 +365,7 @@
       const modalContainer = document.getElementById('cart-items-container');
       const grandTotalEl = document.getElementById('cart-grand-total');
       const orderBtn = document.getElementById('whatsapp-order-btn');
+      const formSection = document.getElementById('customer-form-section');
 
       grandTotalEl.innerText = `₹${grandTotal}`;
 
@@ -333,8 +378,10 @@
           </div>
         `;
         orderBtn.classList.add('opacity-50', 'pointer-events-none');
+        formSection.classList.add('hidden');
       } else {
         orderBtn.classList.remove('opacity-50', 'pointer-events-none');
+        formSection.classList.remove('hidden');
         modalContainer.innerHTML = cartKeys.map(key => {
           const cItem = cart[key];
           return `
@@ -362,25 +409,37 @@
       modal.classList.toggle('hidden');
     }
 
+    // 📲 WhatsApp Order Function with Customer Details
     function sendWhatsAppOrder() {
       const cartKeys = Object.keys(cart);
       if (cartKeys.length === 0) return;
 
-      let msg = `🛍️ *Khushi Bazaar - नया ऑर्डर*\n\n`;
-      let grandTotal = 0;
+      const name = document.getElementById('cust-name').value.trim();
+      const phone = document.getElementById('cust-phone').value.trim();
+      const address = document.getElementById('cust-address').value.trim();
 
+      if (!name || !phone || !address) {
+        alert("कृपया अपना नाम, मोबाइल नंबर और पूरा डिलीवरी का पता दर्ज करें!");
+        return;
+      }
+
+      let msg = `🛍️ *Khushi Bazaar - नया ऑर्डर*\n\n`;
+      msg += `*👤 ग्राहक विवरण:*\n• नाम: ${name}\n• मोबाइल: ${phone}\n• पता: ${address}\n\n`;
+      msg += `*📦 ऑर्डर किए गए सामान:*\n`;
+
+      let grandTotal = 0;
       cartKeys.forEach((key, idx) => {
         const item = cart[key].item;
         const qty = cart[key].qty;
         const itemTotal = item.price * qty;
         grandTotal += itemTotal;
-        msg += `${idx + 1}. *${item.name}*\n   मात्रा: ${qty} | मूल्य: ₹${itemTotal}\n`;
+        msg += `${idx + 1}. *${item.name}* (x${qty}) = ₹${itemTotal}\n`;
       });
 
       msg += `\n-----------------------------------\n`;
       msg += `💰 *कुल बिल (Grand Total): ₹${grandTotal}*\n`;
       msg += `-----------------------------------\n\n`;
-      msg += `कृपया मेरा ऑर्डर कन्फर्म करें और डिलीवरी का समय बताएं। धन्यवाद!`;
+      msg += `कृपया मेरा ऑर्डर कन्फर्म करें। धन्यवाद!`;
 
       const cleanPhone = String(sellerPhone).replace(/\D/g, '');
       const waUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`;
@@ -391,4 +450,4 @@
   </script>
 </body>
 </html>
-          
+                                
