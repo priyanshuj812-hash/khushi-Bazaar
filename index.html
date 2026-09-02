@@ -4,8 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Khushi Bazaar</title>
+  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Font (Poppins) -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- QRCode.js Library for generating QR code dynamically -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <style>
     body { font-family: 'Poppins', sans-serif; }
@@ -13,6 +16,7 @@
 </head>
 <body class="bg-gray-50 text-gray-800 pb-24">
 
+  <!-- 🟢 हेडर (Header) -->
   <header class="sticky top-0 z-30 bg-indigo-600 text-white shadow-md">
     <div class="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
       <div class="flex items-center gap-3">
@@ -30,6 +34,7 @@
     </div>
   </header>
 
+  <!-- 🔍 सर्च बार (Search Bar) -->
   <div class="max-w-4xl mx-auto px-4 mt-4">
     <div class="relative">
       <input type="text" id="search-input" onkeyup="filterProducts()" placeholder="सामान ढूँढें (जैसे: चीनी, साबुन, तेल)..." class="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-xl shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition">
@@ -37,12 +42,14 @@
     </div>
   </div>
 
+  <!-- 🏷️ कैटेगरी फिल्टर टैब्स (Category Filter Tabs) -->
   <div class="max-w-4xl mx-auto px-4 mt-3">
     <div id="category-tabs" class="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
       <button onclick="filterByCategory('all')" class="cat-btn bg-indigo-600 text-white text-xs font-semibold px-4 py-2 rounded-full whitespace-nowrap shadow-sm transition">सभी सामान</button>
     </div>
   </div>
 
+  <!-- 📦 प्रोडक्ट्स लिस्ट (Products Grid) -->
   <main class="max-w-4xl mx-auto px-4 mt-4">
     <h2 id="current-category-title" class="font-bold text-gray-800 text-base mb-3">सभी प्रोडक्ट्स</h2>
     <div id="product-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
@@ -52,6 +59,7 @@
     </div>
   </main>
 
+  <!-- 🛒 नीचे की स्टिकी बार (Mobile Sticky Cart Bar) -->
   <div id="sticky-cart-bar" class="hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-20 px-4 py-3">
     <div class="max-w-4xl mx-auto flex justify-between items-center">
       <div>
@@ -64,6 +72,7 @@
     </div>
   </div>
 
+  <!-- 📷 दुकान का QR कोड मॉडल (Store QR Code Modal) -->
   <div id="qr-modal" class="hidden fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-sm w-full p-5 text-center shadow-2xl relative">
       <button onclick="toggleQRModal(false)" class="absolute top-3 right-3 text-gray-400 hover:text-gray-700 text-xl font-bold">×</button>
@@ -74,6 +83,7 @@
     </div>
   </div>
 
+  <!-- 📋 कार्ट पॉपअप / मॉडल (Cart Modal) -->
   <div id="cart-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-end transition-opacity">
     <div class="bg-white w-full max-w-md h-full flex flex-col shadow-2xl">
       <div class="p-4 bg-indigo-600 text-white flex justify-between items-center">
@@ -85,6 +95,7 @@
       </div>
 
       <div id="customer-form-section" class="p-4 border-t border-gray-100 bg-gray-50">
+        <!-- 📍 ऑटोमैटिक दूरी और जोन स्टेटस डिस्प्ले -->
         <div class="mb-3 bg-indigo-50 border border-indigo-100 p-2.5 rounded-lg flex justify-between items-center">
           <div>
             <p class="text-[10px] text-indigo-500 font-bold uppercase tracking-wide">डिस्टेंस और डिलीवरी जोन</p>
@@ -97,6 +108,7 @@
           <input type="text" id="cust-name" placeholder="आपका नाम *" class="w-full p-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 bg-white">
           <input type="tel" id="cust-phone" placeholder="मोबाइल नंबर *" class="w-full p-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 bg-white">
           
+          <!-- 📍 जीपीएस लोकेशन ऑटो-डिटेक्ट बटन के साथ एड्रेस बॉक्स -->
           <div>
             <div class="flex justify-between items-center mb-1">
               <label class="text-xs font-bold text-gray-700">पूरा पता व लैंडमार्क *</label>
@@ -130,10 +142,11 @@
     </div>
   </div>
 
+  <!-- ⚙️ जावास्क्रिप्ट लॉजिक -->
   <script>
     const SELLER_PHONE = "917970748217"; 
-    // नया अपडेटेड गूगल शीट वेब ऐप यूआरएल
-    const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbxVASiAou_LBy3WzNf8HbzhsUidOCv3fZD7VYdR2JsoN_AnGcgeq43j4oF2nE1kUzD1/exec";
+    // आपका फाइनल अपडेटेड गूगल शीट वेब ऐप यूआरएल
+    const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbwVNMZstbu4c4mxnc0kiuieWrIasFXlfy6WpenqvYW_tx6jv6ZUCLDqWhL9X7wjiJOL/exec";
 
     // 📍 दुकान की फिक्स लोकेशन (सिमडेगा)
     const STORE_LAT = 22.6125; 
@@ -420,13 +433,4 @@
         container.innerHTML = cartKeys.map(key => {
           const c = cart[key];
           return `
-            <div class="flex items-center justify-between pb-3 mb-3 border-b border-gray-100">
-              <div class="flex items-center gap-3">
-                <img src="${c.item.image}" class="w-12 h-12 object-contain rounded border border-gray-100">
-                <div>
-                  <h5 class="font-bold text-xs text-gray-800">${c.item.name}</h5>
-                  <p class="text-xs text-indigo-600 font-semibold">₹${c.item.price} × ${c.qty} = ₹${c.item.price * c.qty}</p>
-                </div>
-              </div>
-              <div class="flex items-center gap-2 bg-gray-100 p-1 rounded-lg">
-                <button onclick="changeQty('${key}', -1)" class
+            <div class="flex items-center jus
