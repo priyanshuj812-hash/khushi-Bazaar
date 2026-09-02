@@ -14,7 +14,7 @@
     body { font-family: 'Poppins', sans-serif; }
   </style>
 </head>
-<body class="bg-gray-50 text-gray-800 pb-24">
+<body class="bg-gray-50 text-gray-800 pb-24" onload="initApp()">
 
   <!-- 🟢 हेडर (Header) -->
   <header class="sticky top-0 z-30 bg-indigo-600 text-white shadow-md">
@@ -145,11 +145,8 @@
   <!-- ⚙️ जावास्क्रिप्ट लॉजिक -->
   <script>
     const SELLER_PHONE = "917970748217"; 
-    
-    // 🔗 सही और अपडेटेड गूगल शीट वेब ऐप यूआरएल
     const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbxvLzQqwFflcptxdQyFl48HhFuEE9dCG7bJArOtzBTR_ZMeVOpuLOWrCjxGhWXiY-v9/exec";
 
-    // 📍 दुकान की फिक्स लोकेशन (सिमडेगा)
     const STORE_LAT = 22.6125; 
     const STORE_LON = 84.5085;
 
@@ -167,6 +164,48 @@
     let activeZoneKey = "1"; 
     let calculatedDistanceKm = 0;
     let isLocationFetched = false;
+
+    function initApp() {
+      loadProducts();
+      setupQRCode();
+    }
+
+    function setupQRCode() {
+      const currentUrl = window.location.href;
+      document.getElementById('store-url-text').innerText = currentUrl;
+      const container = document.getElementById('qrcode-container');
+      container.innerHTML = "";
+      try {
+        new QRCode(container, {
+          text: currentUrl,
+          width: 128,
+          height: 128,
+          colorDark: "#000000",
+          colorLight: "#ffffff",
+          correctLevel: QRCode.CorrectLevel.H
+        });
+      } catch (e) {
+        console.log("QR Code generation error:", e);
+      }
+    }
+
+    function toggleQRModel(show) {
+      const modal = document.getElementById('qr-modal');
+      if (show) {
+        modal.classList.remove('hidden');
+      } else {
+        modal.classList.add('hidden');
+      }
+    }
+
+    function toggleCartModal(show) {
+      const modal = document.getElementById('cart-modal');
+      if (show) {
+        modal.classList.remove('hidden');
+      } else {
+        modal.classList.add('hidden');
+      }
+    }
 
     function calculateDistance(lat1, lon1, lat2, lon2) {
       const R = 6371; 
@@ -410,28 +449,4 @@
       if (!isLocationFetched && subtotal > 0) {
         deliveryInfo.innerHTML = `<span class="text-orange-500 text-[11px]">पहले ऊपर 'वर्तमान जीपीएस लोकेशन' लें</span>`;
       } else if (subtotal >= currentRule.minFree) {
-        deliveryInfo.innerHTML = `<span class="text-green-600 font-bold">फ्री (₹0)</span>`;
-      } else if (subtotal > 0) {
-        let diff = currentRule.minFree - subtotal;
-        deliveryInfo.innerHTML = `<span class="text-orange-600 font-bold">+ ₹${currentRule.charge}</span> <br><span class="text-[10px] text-gray-500">(फ्री डिलीवरी के लिए ₹${diff} और जोड़ें)</span>`;
-      } else {
-        deliveryInfo.innerText = "₹0";
-      }
-
-      const container = document.getElementById('cart-items-container');
-      const formSec = document.getElementById('customer-form-section');
-
-      if (cartKeys.length === 0) {
-        container.innerHTML = `
-          <div class="text-center py-16 text-gray-400">
-            <p class="text-4xl mb-2">🛒</p>
-            <p class="font-semibold text-sm">आपकी कार्ट खाली है!</p>
-          </div>
-        `;
-        formSec.classList.add('hidden');
-      } else {
-        formSec.classList.remove('hidden');
-        container.innerHTML = cartKeys.map(key => {
-          const c = cart[key];
-          return `
-            <div class="flex items-center
+        deliveryInfo.innerHTML = `<span class="text-green-600 font-bol
