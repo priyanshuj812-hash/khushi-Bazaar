@@ -87,12 +87,12 @@
           <!-- 📍 जीपीएस लोकेशन ऑटो-डिटेक्ट बटन के साथ एड्रेस बॉक्स -->
           <div>
             <div class="flex justify-between items-center mb-1">
-              <label class="text-xs font-bold text-gray-700">पूरा पता (Delivery Address) *</label>
+              <label class="text-xs font-bold text-gray-700">पूरा पता व लैंडमार्क *</label>
               <button type="button" onclick="detectLocation()" class="text-[11px] bg-indigo-100 text-indigo-700 font-semibold px-2 py-0.5 rounded hover:bg-indigo-200 transition flex items-center gap-1">
-                📍 वर्तमान लोकेशन भरें
+                📍 वर्तमान जीपीएस लोकेशन लें
               </button>
             </div>
-            <textarea id="cust-address" rows="2" placeholder="मकान नं, गली, लैंडमार्क या ऊपर दिए बटन से जीपीएस लोकेशन लें *" class="w-full p-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 bg-white"></textarea>
+            <textarea id="cust-address" rows="2" placeholder="मकान नं, गली, या जीपीएस बटन दबाएं (साथ में मकान नंबर जरूर लिखें) *" class="w-full p-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 bg-white"></textarea>
           </div>
         </div>
 
@@ -132,6 +132,7 @@
 
     let allProducts = [];
     let cart = {};
+    let customerMapLink = ""; // गूगल मैप लिंक स्टोर करने के लिए
 
     async function loadProducts() {
       const grid = document.getElementById('product-grid');
@@ -213,7 +214,7 @@
       updateCartUI();
     }
 
-    // 📍 GPS ऑटो-लोकेशन फ़ंक्शन
+    // 📍 GPS ऑटो-लोकेशन और मैप लिंक बनाने वाला फ़ंक्शन
     function detectLocation() {
       if (!navigator.geolocation) {
         alert("आपका ब्राउज़र जीपीएस लोकेशन सपोर्ट नहीं करता है।");
@@ -221,28 +222,32 @@
       }
       
       const addressBox = document.getElementById('cust-address');
-      addressBox.value = "लोकेशन खोजी जा रही है, कृपया प्रतीक्षा करें...";
+      addressBox.value = "जीपीएस लोकेशन खोजी जा रही है...";
 
       navigator.geolocation.getCurrentPosition(
         async (position) => {
           const lat = position.coords.latitude;
           const lon = position.coords.longitude;
+          
+          // गूगल मैप का सीधा सटीक लिंक तैयार करना
+          customerMapLink = `https://maps.google.com/?q=${lat},${lon}`;
+
           try {
-            // फ्री ओपन-सोर्स जियोकोडिंग सर्विस से सटीक पता मंगवाना
             const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1`);
             const data = await response.json();
             if (data && data.display_name) {
-              addressBox.value = data.display_name;
+              addressBox.value = data.display_name + " (कृपया आगे अपना मकान/दुकान नंबर भी लिख दें)";
             } else {
-              addressBox.value = `GPS Lat: ${lat}, Lon: ${lon} (सटीक पता नहीं मिला, कृपया मकान नंबर आदि जोड़ लें)`;
+              addressBox.value = `Lat: ${lat}, Lon: ${lon} (कृपया मकान नंबर/लैंडमार्क जोड़ें)`;
             }
           } catch (e) {
-            addressBox.value = `GPS Location Coordinates: ${lat}, ${lon}`;
+            addressBox.value = `GPS Coords: ${lat}, ${lon}`;
           }
         },
         (error) => {
-          alert("लोकेशन एक्सेस करने की अनुमति नहीं मिली। कृपया अपने फोन की जीपीएस परमिशन ऑन करें।");
+          alert("लोकेशन एक्सेस करने की अनुमति नहीं मिली। कृपया जीपीएस ऑन करें।");
           addressBox.value = "";
+          customerMapLink = "";
         },
         { timeout: 10000, enableHighAccuracy: true }
       );
@@ -365,8 +370,14 @@
       let grandTotal = subtotal + deliveryFee;
 
       let msg = `🛍️ *Khushi Bazaar - नया ऑर्डर*\n\n`;
-      msg += `*👤 ग्राहक विवरण:*\n• नाम: ${name}\n• मोबाइल: ${phone}\n• दूरी/इलाका: ${currentRule.name}\n• पता: ${address}\n\n`;
-      msg += `*📦 ऑर्डर की सूची:*\n`;
+      msg += `*👤 ग्राहक विवरण:*\n• नाम: ${name}\n• मोबाइल: ${phone}\n• दूरी/इलाका: ${currentRule.name}\n• पता: ${address}\n`;
+      
+      // अगर जीपीएस से लोकेशन ली गई है, तो व्हाट्सएप पर सीधा मैप लिंक जोड़ें
+      if (customerMapLink) {
+        msg += `• 🗺️ लाइव मैप लोकेशन: ${customerMapLink}\n`;
+      }
+
+      msg += `\n*📦 ऑर्डर की सूची:*\n`;
 
       cartKeys.forEach((key, idx) => {
         const item = cart[key].item;
