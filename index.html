@@ -19,7 +19,7 @@
     <div class="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
       <div>
         <h1 class="text-lg font-bold tracking-wide">🛍️ Khushi Bazaar</h1>
-        <p class="text-[11px] text-indigo-200">घर बैठे किराना मंगाएं</p>
+        <p class="text-[11px] text-indigo-200">घर बैठे किराना मंगाएं (3 KM तक डिलीवरी)</p>
       </div>
       <button onclick="toggleCartModal(true)" class="relative bg-indigo-700 hover:bg-indigo-800 p-2.5 rounded-full transition shadow-inner">
         🛒 <span id="cart-badge-count" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-indigo-600">0</span>
@@ -73,19 +73,53 @@
         <button onclick="toggleCartModal(false)" class="text-white text-2xl font-bold hover:text-gray-200">×</button>
       </div>
 
-      <div id="cart-items-container" class="flex-1 overflow-y-auto p-4">
-      </div>
+      <div id="cart-items-container" class="flex-1 overflow-y-auto p-4"></div>
 
       <div id="customer-form-section" class="p-4 border-t border-gray-100 bg-gray-50">
+        
+        <!-- डिलीवरी नियम बॉक्स -->
+        <div class="mb-3 bg-indigo-50 border border-indigo-200 p-2.5 rounded-lg text-xs text-indigo-900 space-y-1">
+          <div class="flex justify-between items-center">
+            <span class="font-bold text-indigo-700">🚚 डिलीवरी नियम:</span>
+            <span class="text-[10px] bg-indigo-200 text-indigo-800 font-bold px-1.5 py-0.5 rounded">न्यूनतम ऑर्डर ₹99</span>
+          </div>
+          <ul class="list-disc list-inside text-[11px] text-gray-700 space-y-0.5 mt-1">
+            <li><strong>0 - 1 KM:</strong> ₹200+ पर फ्री (अन्यथा ₹15)</li>
+            <li><strong>1 - 2 KM:</strong> ₹300+ पर फ्री (अन्यथा ₹25)</li>
+            <li><strong>2 - 3 KM:</strong> ₹500+ पर फ्री (अन्यथा ₹40)</li>
+          </ul>
+        </div>
+
         <div class="space-y-2 mb-3">
           <input type="text" id="cust-name" placeholder="आपका नाम *" class="w-full p-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 bg-white">
           <input type="tel" id="cust-phone" placeholder="मोबाइल नंबर *" class="w-full p-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 bg-white">
-          <textarea id="cust-address" rows="2" placeholder="पूरा पता व लैंडमार्क (मकान नंबर/गली जरूर लिखें) *" class="w-full p-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 bg-white"></textarea>
+          
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <label class="text-xs font-bold text-gray-700">पता व लैंडमार्क *</label>
+              <button type="button" onclick="getGPSLocation()" class="text-[11px] bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-2.5 py-1 rounded-md transition flex items-center gap-1 shadow-sm">
+                📍 GPS लोकेशन जोड़ें
+              </button>
+            </div>
+            <textarea id="cust-address" rows="2" placeholder="पूरा पता व लैंडमार्क (मकान नंबर/गली जरूर लिखें) *" class="w-full p-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 bg-white"></textarea>
+            <p id="gps-status" class="text-[11px] font-semibold mt-1 hidden"></p>
+          </div>
         </div>
 
-        <div class="bg-white p-3 rounded-lg border border-gray-200 mb-3 flex justify-between items-center font-bold text-base">
-          <span class="text-gray-800">कुल बिल (Grand Total):</span>
-          <span id="cart-grand-total" class="text-indigo-600 text-xl">₹0</span>
+        <!-- बिल विवरण (Bill Breakdown) -->
+        <div class="bg-white p-3 rounded-lg border border-gray-200 mb-3 space-y-1.5 text-xs">
+          <div class="flex justify-between text-gray-600">
+            <span>सामान की कुल कीमत:</span>
+            <span id="cart-subtotal" class="font-semibold text-gray-800">₹0</span>
+          </div>
+          <div class="flex justify-between text-gray-600">
+            <span>डिलीवरी शुल्क:</span>
+            <span id="cart-delivery-fee" class="font-semibold text-indigo-600">₹0</span>
+          </div>
+          <div class="border-t border-gray-100 pt-1.5 flex justify-between items-center font-bold text-base text-gray-800">
+            <span>कुल बिल (Grand Total):</span>
+            <span id="cart-grand-total" class="text-indigo-600 text-xl">₹0</span>
+          </div>
         </div>
 
         <button id="whatsapp-order-btn" onclick="sendWhatsAppOrder()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl shadow-lg flex items-center justify-center gap-2 text-base transition">
@@ -100,17 +134,89 @@
     const SELLER_PHONE = "917970748217"; 
     const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbxgKi-caD30o0kMuTVr7zYJh0z8dgVg046r-bIao2PF8fw_CJ_YscJNa9rIIlSWJ5MW/exec";
 
+    // दुकान की लोकेशन
+    const STORE_LAT = 22.6125; 
+    const STORE_LON = 84.5085;
+
     let allProducts = [];
     let currentCategory = 'all';
     let cart = {};
+    let customerGpsLink = "";
+    let calculatedDistance = null;
 
     function toggleCartModal(show) {
       const modal = document.getElementById('cart-modal');
-      if (show) {
-        modal.classList.remove('hidden');
-      } else {
-        modal.classList.add('hidden');
+      if (show) modal.classList.remove('hidden');
+      else modal.classList.add('hidden');
+    }
+
+    // दूरी नापने का फॉर्मूला (Haversine Formula)
+    function checkDistance(lat1, lon1, lat2, lon2) {
+      const R = 6371;
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      return R * c;
+    }
+
+    // दूरी के अनुसार डिलीवरी नियम
+    function getZoneInfo(dist) {
+      if (dist === null) {
+        // GPS न लेने पर डिफ़ॉल्ट 0-1 KM का नियम लागू होगा
+        return { minFree: 200, fee: 15, name: "0-1 KM (अनुमानित)", isBlocked: false };
       }
+      if (dist <= 1.0) {
+        return { minFree: 200, fee: 15, name: "0-1 KM", isBlocked: false };
+      } else if (dist <= 2.0) {
+        return { minFree: 300, fee: 25, name: "1-2 KM", isBlocked: false };
+      } else if (dist <= 3.0) {
+        return { minFree: 500, fee: 40, name: "2-3 KM", isBlocked: false };
+      } else {
+        return { minFree: Infinity, fee: 0, name: "3+ KM", isBlocked: true };
+      }
+    }
+
+    function getGPSLocation() {
+      const statusText = document.getElementById('gps-status');
+      if (!navigator.geolocation) {
+        alert("आपके डिवाइस में GPS सपोर्ट नहीं है। कृपया पूरा पता लिखें।");
+        return;
+      }
+
+      statusText.innerText = "⏳ आपकी लोकेशन ली जा रही है...";
+      statusText.className = "text-[11px] text-indigo-600 font-semibold mt-1";
+      statusText.classList.remove('hidden');
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const lat = position.coords.latitude;
+          const lon = position.coords.longitude;
+          
+          calculatedDistance = checkDistance(STORE_LAT, STORE_LON, lat, lon);
+          customerGpsLink = `https://maps.google.com/?q=${lat},${lon}`;
+
+          const zone = getZoneInfo(calculatedDistance);
+
+          if (zone.isBlocked) {
+            alert(`⚠️ आपकी दूरी दुकान से ${calculatedDistance.toFixed(1)} KM है। हमारी डिलीवरी सेवा केवल 3 KM तक ही उपलब्ध है।`);
+            statusText.innerText = `❌ दूरी: ${calculatedDistance.toFixed(1)} KM (3 KM की सीमा से बाहर)`;
+            statusText.className = "text-[11px] text-red-600 font-semibold mt-1";
+          } else {
+            statusText.innerText = `✅ दूरी: ${calculatedDistance.toFixed(1)} KM | ज़ोन: ${zone.name}`;
+            statusText.className = "text-[11px] text-green-600 font-semibold mt-1";
+          }
+
+          updateCartUI();
+        },
+        (error) => {
+          alert("GPS लोकेशन प्राप्त नहीं हो सकी। कृपया लोकेशन ऑन करें या परमिशन दें।");
+          statusText.classList.add('hidden');
+        },
+        { timeout: 10000, enableHighAccuracy: true }
+      );
     }
 
     async function loadProducts() {
@@ -229,13 +335,28 @@
     function updateCartUI() {
       const cartKeys = Object.keys(cart);
       let totalItems = 0;
-      let grandTotal = 0;
+      let itemsSubtotal = 0;
 
       cartKeys.forEach(key => {
         totalItems += cart[key].qty;
-        grandTotal += cart[key].qty * cart[key].item.price;
+        itemsSubtotal += cart[key].qty * cart[key].item.price;
       });
 
+      // ज़ोन के अनुसार डिलीवरी चार्ज की गणना
+      const zone = getZoneInfo(calculatedDistance);
+      let deliveryFee = 0;
+
+      if (itemsSubtotal > 0 && !zone.isBlocked) {
+        if (itemsSubtotal >= zone.minFree) {
+          deliveryFee = 0;
+        } else {
+          deliveryFee = zone.fee;
+        }
+      }
+
+      const grandTotal = itemsSubtotal + deliveryFee;
+
+      // बैज अपडेट
       const badge = document.getElementById('cart-badge-count');
       if (totalItems > 0) {
         badge.innerText = totalItems;
@@ -244,6 +365,7 @@
         badge.classList.add('hidden');
       }
 
+      // स्टिकी बॉटम बार अपडेट
       const stickyBar = document.getElementById('sticky-cart-bar');
       if (totalItems > 0) {
         stickyBar.classList.remove('hidden');
@@ -251,6 +373,18 @@
         document.getElementById('sticky-cart-total').innerText = `₹${grandTotal}`;
       } else {
         stickyBar.classList.add('hidden');
+      }
+
+      // कार्ट पॉपअप बिल ब्रेकडाउन
+      document.getElementById('cart-subtotal').innerText = `₹${itemsSubtotal}`;
+      
+      const feeText = document.getElementById('cart-delivery-fee');
+      if (deliveryFee === 0) {
+        feeText.innerText = "फ्री (FREE)";
+        feeText.className = "font-bold text-green-600";
+      } else {
+        feeText.innerText = `₹${deliveryFee}`;
+        feeText.className = "font-semibold text-indigo-600";
       }
 
       document.getElementById('cart-grand-total').innerText = `₹${grandTotal}`;
@@ -296,32 +430,32 @@
         return;
       }
 
-      if (!name || !phone || !address) {
-        alert("कृपया अपना नाम, मोबाइल नंबर और पूरा पता लिखें!");
+      let itemsSubtotal = 0;
+      cartKeys.forEach(key => {
+        itemsSubtotal += cart[key].qty * cart[key].item.price;
+      });
+
+      // 1. ₹99 मिनिमम ऑर्डर लॉक
+      if (itemsSubtotal < 99) {
+        alert(`⚠️ न्यूनतम ऑर्डर ₹99 होना अनिवार्य है। अभी आपकी कार्ट का कुल बिल ₹${itemsSubtotal} है। कृपया थोड़ा सामान और जोड़ें!`);
         return;
       }
 
-      let grandTotal = 0;
+      // 2. 3 KM दूरी ऑटो-ब्लॉक
+      const zone = getZoneInfo(calculatedDistance);
+      if (zone.isBlocked) {
+        alert(`⚠️ आपकी दूरी (${calculatedDistance.toFixed(1)} KM) हमारी 3 KM की डिलीवरी सीमा से बाहर है। ऑर्डर स्वीकार्य नहीं है।`);
+        return;
+      }
+
+      // 3. आवश्यक जानकारी चेक
+      if (!name || !phone || !address) {
+        alert("कृपया अपना नाम, मोबाइल नंबर और पूरा पता जरूर लिखें!");
+        return;
+      }
+
+      let deliveryFee = (itemsSubtotal >= zone.minFree) ? 0 : zone.fee;
+      let grandTotal = itemsSubtotal + deliveryFee;
+
       let orderText = `🛍️ *नया ऑर्डर - Khushi Bazaar*\n\n`;
-      orderText += `👤 *ग्राहक का नाम:* ${name}\n`;
-      orderText += `📞 *मोबाइल नंबर:* ${phone}\n`;
-      orderText += `📍 *पता:* ${address}\n\n`;
-      orderText += `🛒 *ऑर्डर किया सामान:*\n`;
-
-      cartKeys.forEach((key, index) => {
-        const item = cart[key].item;
-        const qty = cart[key].qty;
-        const itemTotal = item.price * qty;
-        grandTotal += itemTotal;
-        orderText += `${index + 1}. ${item.name} (${qty} x ₹${item.price}) = ₹${itemTotal}\n`;
-      });
-
-      orderText += `\n💰 *कुल बिल (Grand Total):* ₹${grandTotal}\n\n`;
-      orderText += `धन्यवाद! कृपया ऑर्डर कन्फर्म करें।`;
-
-      const encodedUrl = `https://wa.me/${SELLER_PHONE}?text=${encodeURIComponent(orderText)}`;
-      window.open(encodedUrl, '_blank');
-    }
-  </script>
-</body>
-</html>
+      orderText += `👤 *ग
