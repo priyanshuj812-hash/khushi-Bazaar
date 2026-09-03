@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="hi">
 <head>
@@ -121,7 +120,6 @@
     const STORE_LAT = 22.6125;
     const STORE_LON = 84.5085;
 
-    // डिफ़ॉल्ट प्रोडक्ट्स ताकि ऐप कभी खाली न रहे
     const fallbackProducts = [
       { id: "1", name: "चीनी (Sugar) 1kg", category: "किराना", price: 45, mrp: 50, image: "https://via.placeholder.com/300" },
       { id: "2", name: "सरसों तेल (Mustard Oil) 1L", category: "तेल व मसाले", price: 140, mrp: 160, image: "https://via.placeholder.com/300" },
@@ -388,4 +386,5 @@
 
       let subtotal = 0, orderItemsList = "";
       Object.keys(cart).forEach(key => {
-        const item = cart[key].item, qty = c
+        const item = cart[key].item, qty = cart[key].qty, cost = qty * item.price;
+        sub
