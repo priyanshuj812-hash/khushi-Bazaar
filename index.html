@@ -123,7 +123,6 @@
     const SELLER_PHONE = "917970748217"; 
     const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbxgKi-caD30o0kMuTVr7zYJh0z8dgVg046r-bIao2PF8fw_CJ_YscJNa9rIIlSWJ5MW/exec";
 
-    // दुकान की लोकेशन
     const STORE_LAT = 22.6125; 
     const STORE_LON = 84.5085;
 
@@ -139,7 +138,6 @@
       else modal.classList.add('hidden');
     }
 
-    // दूरी नापने का फॉर्मूला (Haversine Formula)
     function checkDistance(lat1, lon1, lat2, lon2) {
       const R = 6371;
       const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -151,7 +149,6 @@
       return R * c;
     }
 
-    // दूरी के अनुसार डिलीवरी नियम
     function getZoneInfo(dist) {
       if (dist === null) {
         return { minFree: 200, fee: 15, name: "0-1 KM (अनुमानित)", isBlocked: false };
@@ -457,4 +454,7 @@
       });
 
       orderText += `\n💵 *कुल सामान:* ₹${itemsSubtotal}\n`;
-      orderText += `🚚 *डिलीवरी शुल्क:* ${deliveryFee === 0 ? 'FREE
+      orderText += `🚚 *डिलीवरी शुल्क:* ${deliveryFee === 0 ? 'FREE' : '₹' + deliveryFee}\n`;
+      orderText += `💰 *कुल बिल (Grand Total):* ₹${grandTotal}\n`;
+
+      const e
