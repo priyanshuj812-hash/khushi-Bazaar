@@ -1014,3 +1014,427 @@ ${orderItems}
 
 </body>
 </html>    
+      }
+
+      /* =========================
+         STICKY CART
+      ========================= */
+      const stickyBar = document.getElementById("sticky-cart-bar");
+      const stickyItems = document.getElementById("sticky-cart-items");
+      const stickyTotal = document.getElementById("sticky-cart-total");
+
+      if (totalItems > 0) {
+        stickyBar.classList.remove("hidden");
+        stickyItems.innerText = `${totalItems} सामान`;
+        stickyTotal.innerText = `₹${grandTotal}`;
+      } else {
+        stickyBar.classList.add("hidden");
+      }
+
+      /* =========================
+         CART ITEMS
+      ========================= */
+      const container = document.getElementById("cart-items-container");
+
+      if (keys.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-10 text-gray-400">
+            <div class="text-5xl mb-3">🛒</div>
+            <p class="font-semibold">आपकी कार्ट खाली है</p>
+            <p class="text-xs mt-1">सामान जोड़कर ऑर्डर करें</p>
+          </div>
+        `;
+      } else {
+        container.innerHTML = keys.map(function(key) {
+          const data = cart[key];
+          const p = data.item;
+          const itemTotal = data.qty * p.price;
+
+          return `
+            <div class="flex gap-3 border-b border-gray-100 pb-3 mb-3">
+
+              <img
+                src="${escapeHTML(p.image)}"
+                class="w-16 h-16 object-contain rounded-lg border border-gray-100"
+                onerror="this.src='https://via.placeholder.com/100'"
+              >
+
+              <div class="flex-1">
+
+                <h4 class="font-semibold text-sm text-gray-800">
+                  ${escapeHTML(p.name)}
+                </h4>
+
+                <p class="text-xs text-indigo-600 font-bold mt-1">
+                  ₹${p.price}
+                </p>
+
+                <div class="flex items-center justify-between mt-2">
+
+                  <div class="flex items-center border border-gray-200 rounded-lg overflow-hidden">
+
+                    <button
+                      onclick="changeQty('${escapeJS(p.id)}', -1)"
+                      class="w-8 h-8 bg-gray-50 font-bold text-lg"
+                    >
+                      −
+                    </button>
+
+                    <span class="w-8 text-center text-sm font-bold">
+                      ${data.qty}
+                    </span>
+
+                    <button
+                      onclick="changeQty('${escapeJS(p.id)}', 1)"
+                      class="w-8 h-8 bg-gray-50 font-bold text-lg"
+                    >
+                      +
+                    </button>
+
+                  </div>
+
+                  <span class="font-bold text-sm">
+                    ₹${itemTotal}
+                  </span>
+
+                </div>
+              </div>
+            </div>
+          `;
+        }).join("");
+      }
+
+      /* =========================
+         BILL
+      ========================= */
+      document.getElementById("cart-subtotal").innerText =
+        `₹${subtotal}`;
+
+      const deliveryElement =
+        document.getElementById("cart-delivery-fee");
+
+      const grandTotalElement =
+        document.getElementById("cart-grand-total");
+
+      if (subtotal === 0) {
+
+        deliveryElement.innerText = "₹0";
+        grandTotalElement.innerText = "₹0";
+
+      } else if (calculatedDistance === null) {
+
+        deliveryElement.innerText = "GPS जरूरी";
+        grandTotalElement.innerText = `₹${subtotal}`;
+
+      } else if (zone.isBlocked) {
+
+        deliveryElement.innerText = "उपलब्ध नहीं";
+        grandTotalElement.innerText = `₹${subtotal}`;
+
+      } else {
+
+        deliveryElement.innerText =
+          deliveryFee === 0
+            ? "FREE"
+            : `₹${deliveryFee}`;
+
+        grandTotalElement.innerText =
+          `₹${grandTotal}`;
+      }
+
+      /* =========================
+         WHATSAPP BUTTON
+      ========================= */
+      const whatsappBtn =
+        document.getElementById("whatsapp-order-btn");
+
+      if (
+        subtotal > 0 &&
+        calculatedDistance !== null &&
+        !zone.isBlocked
+      ) {
+
+        whatsappBtn.disabled = false;
+
+        whatsappBtn.classList.remove(
+          "opacity-50",
+          "cursor-not-allowed"
+        );
+
+      } else {
+
+        whatsappBtn.disabled = true;
+
+        whatsappBtn.classList.add(
+          "opacity-50",
+          "cursor-not-allowed"
+        );
+      }
+    }
+
+
+    /* =========================
+       WHATSAPP ORDER
+    ========================= */
+    function sendWhatsAppOrder() {
+
+      const keys = Object.keys(cart);
+
+      if (keys.length === 0) {
+        alert("कृपया पहले सामान कार्ट में जोड़ें।");
+        return;
+      }
+
+      if (calculatedDistance === null) {
+        alert("कृपया पहले GPS Location लें।");
+        return;
+      }
+
+      const zone = getZoneInfo(calculatedDistance);
+
+      if (zone.isBlocked) {
+
+        alert(
+          `आपकी दूरी ${calculatedDistance.toFixed(1)} KM है।\n\n` +
+          `डिलीवरी केवल 3 KM तक उपलब्ध है।`
+        );
+
+        return;
+      }
+
+      /* CUSTOMER DETAILS */
+      const name =
+        document.getElementById("cust-name").value.trim();
+
+      const phone =
+        document.getElementById("cust-phone").value.trim();
+
+      const address =
+        document.getElementById("cust-address").value.trim();
+
+
+      /* NAME CHECK */
+      if (!name) {
+
+        alert("कृपया अपना नाम डालें.");
+
+        document.getElementById("cust-name").focus();
+
+        return;
+      }
+
+
+      /* PHONE CHECK */
+      if (!/^[6-9][0-9]{9}$/.test(phone)) {
+
+        alert(
+          "कृपया सही 10 अंकों का मोबाइल नंबर डालें।"
+        );
+
+        document.getElementById("cust-phone").focus();
+
+        return;
+      }
+
+
+      /* ADDRESS CHECK */
+      if (!address) {
+
+        alert(
+          "कृपया पूरा पता और Landmark डालें।"
+        );
+
+        document.getElementById("cust-address").focus();
+
+        return;
+      }
+
+
+      /* =========================
+         ORDER ITEMS
+      ========================= */
+      let subtotal = 0;
+
+      let orderItems = "";
+
+      keys.forEach(function(key, index) {
+
+        const data = cart[key];
+
+        const p = data.item;
+
+        const itemTotal =
+          data.qty * p.price;
+
+        subtotal += itemTotal;
+
+        orderItems +=
+          `${index + 1}. ${p.name} × ${data.qty} = ₹${itemTotal}\n`;
+      });
+
+
+      /* =========================
+         FINAL BILL
+      ========================= */
+      const deliveryFee =
+        subtotal >= zone.minFree
+          ? 0
+          : zone.fee;
+
+      const grandTotal =
+        subtotal + deliveryFee;
+
+
+      /* ORDER ID */
+      const orderId =
+        "KB" + Date.now().toString().slice(-8);
+
+
+      /* GPS */
+      const gpsLink =
+        customerGpsLink || "GPS उपलब्ध नहीं";
+
+
+      /* =========================
+         WHATSAPP MESSAGE
+      ========================= */
+      const message =
+`🛍️ *KHUSHI BAZAAR ORDER*
+
+🆔 Order ID: ${orderId}
+
+👤 *Customer Details*
+नाम: ${name}
+मोबाइल: ${phone}
+
+📍 *पता*
+${address}
+
+📌 *GPS Location*
+${gpsLink}
+
+📏 दूरी: ${calculatedDistance.toFixed(2)} KM
+🚚 Delivery Zone: ${zone.name}
+
+🛒 *सामान*
+${orderItems}
+━━━━━━━━━━━━━━
+सामान की कीमत: ₹${subtotal}
+डिलीवरी शुल्क: ${deliveryFee === 0 ? "FREE" : "₹" + deliveryFee}
+*कुल बिल: ₹${grandTotal}*
+━━━━━━━━━━━━━━
+
+कृपया ऑर्डर कन्फर्म करें। 🙏`;
+
+
+      /* =========================
+         GOOGLE SHEET ORDER DATA
+      ========================= */
+      const orderData = {
+
+        action: "order",
+
+        orderId: orderId,
+
+        name: name,
+
+        phone: phone,
+
+        address: address,
+
+        gps: gpsLink,
+
+        distance:
+          Number(calculatedDistance.toFixed(2)),
+
+        subtotal: subtotal,
+
+        deliveryFee: deliveryFee,
+
+        total: grandTotal,
+
+        items: orderItems,
+
+        date:
+          new Date().toLocaleString("en-IN")
+      };
+
+
+      /* =========================
+         SAVE ORDER TO GOOGLE SHEET
+      ========================= */
+      try {
+
+        fetch(GOOGLE_SHEET_URL, {
+
+          method: "POST",
+
+          mode: "no-cors",
+
+          headers: {
+            "Content-Type":
+              "text/plain;charset=utf-8"
+          },
+
+          body: JSON.stringify(orderData)
+
+        });
+
+      } catch (error) {
+
+        console.error(
+          "Google Sheet order save error:",
+          error
+        );
+      }
+
+
+      /* =========================
+         OPEN WHATSAPP
+      ========================= */
+      const whatsappURL =
+        `https://wa.me/${SELLER_PHONE}?text=${encodeURIComponent(message)}`;
+
+      window.open(
+        whatsappURL,
+        "_blank"
+      );
+    }
+
+
+    /* =========================
+       ESCAPE HTML
+    ========================= */
+    function escapeHTML(value) {
+
+      return String(value)
+
+        .replace(/&/g, "&amp;")
+
+        .replace(/</g, "&lt;")
+
+        .replace(/>/g, "&gt;")
+
+        .replace(/"/g, "&quot;")
+
+        .replace(/'/g, "&#039;");
+    }
+
+
+    /* =========================
+       ESCAPE JAVASCRIPT
+    ========================= */
+    function escapeJS(value) {
+
+      return String(value)
+
+        .replace(/\\/g, "\\\\")
+
+        .replace(/'/g, "\\'")
+
+        .replace(/"/g, '\\"');
+    }
+
+  </script>
+</body>
+</html>
