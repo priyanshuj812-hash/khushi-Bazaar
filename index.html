@@ -4,9 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Khushi Bazaar</title>
-  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Google Font (Poppins) -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     body { font-family: 'Poppins', sans-serif; }
@@ -14,7 +12,6 @@
 </head>
 <body class="bg-gray-50 text-gray-800 pb-24" onload="loadProducts()">
 
-  <!-- 🟢 हेडर (Header) -->
   <header class="sticky top-0 z-30 bg-indigo-600 text-white shadow-md">
     <div class="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
       <div>
@@ -27,7 +24,6 @@
     </div>
   </header>
 
-  <!-- 🔍 सर्च बार (Search Bar) -->
   <div class="max-w-4xl mx-auto px-4 mt-4">
     <div class="relative">
       <input type="text" id="search-input" onkeyup="filterProducts()" placeholder="सामान ढूँढें (जैसे: चीनी, साबुन, तेल)..." class="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-xl shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition">
@@ -35,14 +31,12 @@
     </div>
   </div>
 
-  <!-- 🏷️ कैटेगरी फिल्टर टैब्स (Category Filter Tabs) -->
   <div class="max-w-4xl mx-auto px-4 mt-3">
     <div id="category-tabs" class="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
       <button onclick="filterByCategory('all')" class="cat-btn bg-indigo-600 text-white text-xs font-semibold px-4 py-2 rounded-full whitespace-nowrap shadow-sm transition">सभी सामान</button>
     </div>
   </div>
 
-  <!-- 📦 प्रोडक्ट्स लिस्ट (Products Grid) -->
   <main class="max-w-4xl mx-auto px-4 mt-4">
     <h2 id="current-category-title" class="font-bold text-gray-800 text-base mb-3">सभी प्रोडक्ट्स</h2>
     <div id="product-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
@@ -52,7 +46,6 @@
     </div>
   </main>
 
-  <!-- 🛒 नीचे की स्टिकी बार (Mobile Sticky Cart Bar) -->
   <div id="sticky-cart-bar" class="hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-20 px-4 py-3">
     <div class="max-w-4xl mx-auto flex justify-between items-center">
       <div>
@@ -65,7 +58,6 @@
     </div>
   </div>
 
-  <!-- 📋 कार्ट पॉपअप / मॉडल (Cart Modal) -->
   <div id="cart-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-end transition-opacity">
     <div class="bg-white w-full max-w-md h-full flex flex-col shadow-2xl">
       <div class="p-4 bg-indigo-600 text-white flex justify-between items-center">
@@ -77,7 +69,6 @@
 
       <div id="customer-form-section" class="p-4 border-t border-gray-100 bg-gray-50">
         
-        <!-- डिलीवरी नियम बॉक्स -->
         <div class="mb-3 bg-indigo-50 border border-indigo-200 p-2.5 rounded-lg text-xs text-indigo-900 space-y-1">
           <div class="flex justify-between items-center">
             <span class="font-bold text-indigo-700">🚚 डिलीवरी नियम:</span>
@@ -106,7 +97,6 @@
           </div>
         </div>
 
-        <!-- बिल विवरण (Bill Breakdown) -->
         <div class="bg-white p-3 rounded-lg border border-gray-200 mb-3 space-y-1.5 text-xs">
           <div class="flex justify-between text-gray-600">
             <span>सामान की कुल कीमत:</span>
@@ -129,7 +119,6 @@
     </div>
   </div>
 
-  <!-- ⚙️ जावास्क्रिप्ट लॉजिक -->
   <script>
     const SELLER_PHONE = "917970748217"; 
     const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbxgKi-caD30o0kMuTVr7zYJh0z8dgVg046r-bIao2PF8fw_CJ_YscJNa9rIIlSWJ5MW/exec";
@@ -165,7 +154,6 @@
     // दूरी के अनुसार डिलीवरी नियम
     function getZoneInfo(dist) {
       if (dist === null) {
-        // GPS न लेने पर डिफ़ॉल्ट 0-1 KM का नियम लागू होगा
         return { minFree: 200, fee: 15, name: "0-1 KM (अनुमानित)", isBlocked: false };
       }
       if (dist <= 1.0) {
@@ -342,7 +330,6 @@
         itemsSubtotal += cart[key].qty * cart[key].item.price;
       });
 
-      // ज़ोन के अनुसार डिलीवरी चार्ज की गणना
       const zone = getZoneInfo(calculatedDistance);
       let deliveryFee = 0;
 
@@ -356,7 +343,6 @@
 
       const grandTotal = itemsSubtotal + deliveryFee;
 
-      // बैज अपडेट
       const badge = document.getElementById('cart-badge-count');
       if (totalItems > 0) {
         badge.innerText = totalItems;
@@ -365,7 +351,6 @@
         badge.classList.add('hidden');
       }
 
-      // स्टिकी बॉटम बार अपडेट
       const stickyBar = document.getElementById('sticky-cart-bar');
       if (totalItems > 0) {
         stickyBar.classList.remove('hidden');
@@ -375,7 +360,6 @@
         stickyBar.classList.add('hidden');
       }
 
-      // कार्ट पॉपअप बिल ब्रेकडाउन
       document.getElementById('cart-subtotal').innerText = `₹${itemsSubtotal}`;
       
       const feeText = document.getElementById('cart-delivery-fee');
@@ -435,20 +419,17 @@
         itemsSubtotal += cart[key].qty * cart[key].item.price;
       });
 
-      // 1. ₹99 मिनिमम ऑर्डर लॉक
       if (itemsSubtotal < 99) {
         alert(`⚠️ न्यूनतम ऑर्डर ₹99 होना अनिवार्य है। अभी आपकी कार्ट का कुल बिल ₹${itemsSubtotal} है। कृपया थोड़ा सामान और जोड़ें!`);
         return;
       }
 
-      // 2. 3 KM दूरी ऑटो-ब्लॉक
       const zone = getZoneInfo(calculatedDistance);
       if (zone.isBlocked) {
         alert(`⚠️ आपकी दूरी (${calculatedDistance.toFixed(1)} KM) हमारी 3 KM की डिलीवरी सीमा से बाहर है। ऑर्डर स्वीकार्य नहीं है।`);
         return;
       }
 
-      // 3. आवश्यक जानकारी चेक
       if (!name || !phone || !address) {
         alert("कृपया अपना नाम, मोबाइल नंबर और पूरा पता जरूर लिखें!");
         return;
@@ -458,4 +439,22 @@
       let grandTotal = itemsSubtotal + deliveryFee;
 
       let orderText = `🛍️ *नया ऑर्डर - Khushi Bazaar*\n\n`;
-      orderText += `👤 *ग
+      orderText += `👤 *ग्राहक का नाम:* ${name}\n`;
+      orderText += `📞 *फोन नंबर:* ${phone}\n`;
+      orderText += `🏠 *पता:* ${address}\n`;
+      if (customerGpsLink) {
+        orderText += `📍 *GPS लोकेशन:* ${customerGpsLink}\n`;
+      }
+      if (calculatedDistance !== null) {
+        orderText += `📏 *दूरी:* ${calculatedDistance.toFixed(1)} KM (${zone.name})\n`;
+      }
+      orderText += `\n📦 *सामान की सूची:*\n`;
+
+      cartKeys.forEach(key => {
+        const item = cart[key].item;
+        const qty = cart[key].qty;
+        orderText += `• ${item.name} (₹${item.price} x ${qty} = ₹${item.price * qty})\n`;
+      });
+
+      orderText += `\n💵 *कुल सामान:* ₹${itemsSubtotal}\n`;
+      orderText += `🚚 *डिलीवरी शुल्क:* ${deliveryFee === 0 ? 'FREE
