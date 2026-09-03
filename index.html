@@ -133,6 +133,16 @@
     let customerGpsLink = "";
     let calculatedDistance = null;
 
+    function escapeHTML(str) {
+      return String(str).replace(/[&<>'"]/g, 
+        tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+      );
+    }
+
+    function escapeJS(str) {
+      return String(str).replace(/['"\\]/g, '\\$&');
+    }
+
     async function initStore() {
       try {
         const res = await fetch(GOOGLE_SHEET_URL, { cache: "no-store" });
@@ -381,10 +391,4 @@
       if (phone.length !== 10) { alert("कृपया सही 10 अंकों का मोबाइल नंबर दर्ज करें!"); return; }
       if (calculatedDistance === null) { alert("कृपया पहले '📍 GPS लोकेशन' बटन पर क्लिक करके अपनी लोकेशन दें!"); return; }
 
-      const zone = getZoneInfo(calculatedDistance);
-      if (zone.isBlocked) { alert("आपकी लोकेशन 3 KM की डिलीवरी सीमा से बाहर है!"); return; }
-
-      let subtotal = 0, orderItemsList = "";
-      Object.keys(cart).forEach(key => {
-        const item = cart[key].item, qty = cart[key].qty, cost = qty * item.price;
-        sub
+      const zone = getZoneInfo(calculatedDi
