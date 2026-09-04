@@ -44,7 +44,15 @@
       <div class="inline-block animate-spin rounded-full h-10 w-10 border-4 border-indigo-600 border-t-transparent"></div>
       <p class="mt-3 text-gray-500 font-medium">गूगल शीट से सामान लोड हो रहा है...</p>
     </div>
+
+    <div id="load-error" class="hidden text-center py-12 text-red-600 bg-red-50 border border-red-200 rounded-xl px-4">
+      <p class="font-bold text-lg mb-2">⚠️ सामान लोड नहीं हो पाया</p>
+      <p id="load-error-detail" class="text-sm font-mono break-words"></p>
+      <p class="text-sm mt-3 text-gray-600">कृपया इस पूरे message का स्क्रीनशॉट लेकर भेजें।</p>
+    </div>
+
     <div id="products-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 hidden"></div>
+
     <div id="no-products" class="hidden text-center py-12 text-gray-500">
       इस कैटेगरी में अभी कोई सामान उपलब्ध नहीं है।
     </div>
@@ -182,58 +190,89 @@
       return { allowed: true, charge: isFree ? 0 : rule.charge, freeAbove: rule.freeAbove, isFree, reason: 'ok' };
     }
 
+    // ---------------- GOOGLE SHEET DATA FETCH ----------------
+    // Errors ab silently swallow nahi hote — throw hote hain taaki
+    // initStore() unhe pakad kar screen par error dikha sake.
     async function fetchGVizData(sheetName) {
-      try {
-        const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`;
-        const res = await fetch(url);
-        const text = await res.text();
-        const jsonMatch = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\);/);
-        if (!jsonMatch) return [];
-        const data = JSON.parse(jsonMatch[1]);
-        const cols = data.table.cols.map(c => c && c.label ? c.label.trim().toLowerCase() : '');
-        const rows = data.table.rows || [];
-        return rows.map(r => {
-          let obj = {};
-          r.c.forEach((cell, idx) => {
-            const key = cols[idx] || `col_${idx}`;
-            const val = cell ? (cell.v !== null && cell.v !== undefined ? cell.v : (cell.f || '')) : '';
-            obj[key] = val;
-            obj[`col_${idx}`] = val;
-          });
-          return obj;
-        });
-      } catch (e) {
-        console.error('Fetch error:', e);
-        return [];
+      const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`;
+      const res = await fetch(url);
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status} while fetching sheet "${sheetName}"`);
       }
+      const text = await res.text();
+      const jsonMatch = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\);/);
+      if (!jsonMatch) return [];
+      const data = JSON.parse(jsonMatch[1]);
+      const cols = data.table.cols.map(c => c && c.label ? c.label.trim().toLowerCase() : '');
+      const rows = data.table.rows || [];
+      return rows.map(r => {
+        let obj = {};
+        r.c.forEach((cell, idx) => {
+          const key = cols[idx] || `col_${idx}`;
+          const val = cell ? (cell.v !== null && cell.v !== undefined ? cell.v : (cell.f || '')) : '';
+          obj[key] = val;
+          obj[`col_${idx}`] = val;
+        });
+        return obj;
+      });
+    }
+
+    function showLoadError(message) {
+      document.getElementById('loading').classList.add('hidden');
+      const errBox = document.getElementById('load-error');
+      const errDetail = document.getElementById('load-error-detail');
+      errBox.classList.remove('hidden');
+      errDetail.innerText = message;
     }
 
     async function initStore() {
       document.getElementById('loading').classList.remove('hidden');
-      let prodRows = await fetchGVizData('Sheet1');
-      if (!prodRows.length) prodRows = await fetchGVizData('Products');
-      let catRows = await fetchGVizData('Sheet2');
-      if (!catRows.length) catRows = await fetchGVizData('Categories');
 
-      catRows.forEach(row => {
-        const catName = row.category || row.col_0 || '';
-        const catDesc = row.categorydescription || row.description || row.col_1 || '';
-        if (catName) categoryMap[catName.toString().trim()] = catDesc.toString().trim();
-      });
+      try {
+        const withTimeout = (promise, ms) => Promise.race([
+          promise,
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout: 10 सेकंड में जवाब नहीं आया (शायद Sheet publicly shared नहीं है, या internet धीमा है)')), ms))
+        ]);
 
-      allProducts = prodRows.map((row, index) => ({
-        id: index,
-        name: row.name || row.col_0 || 'Product',
-        category: (row.category || row.col_1 || 'General').toString().trim(),
-        price: parseFloat(row.price || row.col_2 || 0),
-        image: row.image || row.img || row.col_3 || 'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=400',
-        description: row.description || row.desc || row.col_4 || ''
-      })).filter(p => p.name && p.name.toLowerCase() !== 'name');
+        let prodRows = await withTimeout(fetchGVizData('Sheet1'), 10000);
+        if (!prodRows.length) prodRows = await withTimeout(fetchGVizData('Products'), 10000);
 
-      renderCategories();
-      renderProducts();
-      document.getElementById('loading').classList.add('hidden');
-      document.getElementById('products-grid').classList.remove('hidden');
+        if (!prodRows.length) {
+          throw new Error('Sheet से कोई product row नहीं मिली। "Sheet1" या "Products" नाम के tab में data check करें, और सुनिश्चित करें row 1 में headers हैं (name, category, price...).');
+        }
+
+        let catRows = await withTimeout(fetchGVizData('Sheet2'), 10000);
+        if (!catRows.length) catRows = await withTimeout(fetchGVizData('Categories'), 10000);
+
+        catRows.forEach(row => {
+          const catName = row.category || row.col_0 || '';
+          const catDesc = row.categorydescription || row.description || row.col_1 || '';
+          if (catName) categoryMap[catName.toString().trim()] = catDesc.toString().trim();
+        });
+
+        allProducts = prodRows.map((row, index) => ({
+          id: index,
+          name: row.name || row.col_0 || 'Product',
+          category: (row.category || row.col_1 || 'General').toString().trim(),
+          price: parseFloat(row.price || row.col_2 || 0),
+          image: row.image || row.img || row.col_3 || 'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=400',
+          description: row.description || row.desc || row.col_4 || ''
+        })).filter(p => p.name && p.name.toLowerCase() !== 'name');
+
+        if (!allProducts.length) {
+          throw new Error('Sheet में rows तो मिलीं लेकिन "name" column खाली/गलत नाम का है। Row 1 में column header ठीक "name" होना चाहिए।');
+        }
+
+        renderCategories();
+        renderProducts();
+        document.getElementById('loading').classList.add('hidden');
+        document.getElementById('products-grid').classList.remove('hidden');
+      } catch (err) {
+        console.error('Store init error:', err);
+        showLoadError(err.message || String(err));
+        return;
+      }
+
       requestLocation();
     }
 
@@ -356,38 +395,4 @@
       const modalContainer = document.getElementById('cart-items-container');
       const orderBtn = document.getElementById('whatsapp-order-btn');
       const deliveryBox = document.getElementById('delivery-info-box');
-      const noDeliveryBox = document.getElementById('no-delivery-box');
-      const minOrderWarning = document.getElementById('min-order-warning');
-      const freeDeliveryHint = document.getElementById('free-delivery-hint');
-
-      document.getElementById('cart-items-subtotal').innerText = `₹${subtotal}`;
-      document.getElementById('cart-grand-total').innerText = `₹${grandTotal}`;
-
-      if (cartKeys.length === 0) {
-        modalContainer.innerHTML = `
-          <div class="text-center py-16 text-gray-400">
-            <p class="text-4xl mb-3">🛒</p>
-            <p class="font-medium text-base">आपकी कार्ट खाली है!</p>
-            <p class="text-xs mt-1 text-gray-400">दुकान से सामान चुनकर कार्ट में जोड़ें।</p>
-          </div>
-        `;
-        orderBtn.classList.add('opacity-50', 'pointer-events-none');
-        deliveryBox.classList.add('hidden');
-        noDeliveryBox.classList.add('hidden');
-        return;
-      }
-
-      modalContainer.innerHTML = cartKeys.map(id => {
-        const cItem = cart[id];
-        const descStr = cItem.item.description ? ` (${cItem.item.description})` : '';
-        return `
-          <div class="flex items-center justify-between pb-3 mb-3 border-b border-gray-100">
-            <div class="flex items-center gap-3">
-              <img src="${cItem.item.image}" class="w-12 h-12 object-contain rounded-lg border border-gray-100">
-              <div>
-                <h5 class="font-bold text-sm text-gray-900">${cItem.item.name}${descStr}</h5>
-                <p class="text-xs text-indigo-600 font-semibold">₹${cItem.item.price} × ${cItem.qty} = ₹${cItem.item.price * cItem.qty}</p>
-              </div>
-            </div>
-            <div class="flex items-center gap-2 bg-gray-100 p-1 rounded-lg">
-              <button onclick="changeQty(${id}, -1)" class="w-6 h-6 bg-white rounded font-bold text-gray-700 text-xs shadow-sm">-</
+      const noDeliveryBox = document.getElementByI
