@@ -3,378 +3,223 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Khushi Bazaar - डिजिटल सुपरस्टोर</title>
+  <title>Khushi Bazaar - आपकी अपनी किराना दुकान</title>
+  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Font (Poppins) -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    @keyframes pulse-light {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.7; }
-    }
-    .sale-pulse { animation: pulse-light 2s infinite; }
+    body { font-family: 'Poppins', sans-serif; }
   </style>
 </head>
-<body class="bg-gray-100 text-gray-800 font-sans min-h-screen flex flex-col pb-28 md:pb-12">
+<body class="bg-gray-50 text-gray-800 pb-24">
 
-  <!-- Special Sale Top Bar -->
-  <div class="bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 text-white text-xs md:text-sm py-2 px-4 text-center font-bold shadow-sm flex items-center justify-center gap-2 sale-pulse">
-    <span>🌧️ ⚡ **विशेष मानसून सेल** — सभी किराना सामानों पर भारी छूट! ⚡ 🌧️</span>
-  </div>
-
-  <!-- Header -->
-  <header class="bg-indigo-600 text-white sticky top-0 z-40 shadow-lg">
-    <div class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center gap-2">
-      <h1 class="text-xl md:text-2xl font-black flex items-center gap-2 tracking-wide">
-        <span class="bg-white text-indigo-600 p-1.5 rounded-lg text-lg">🛍️</span> Khushi Bazaar
-      </h1>
-      
-      <!-- Top Cart Button -->
-      <button onclick="toggleCartModal()" class="relative bg-indigo-700 hover:bg-indigo-800 text-white px-4 py-2 rounded-full font-bold text-sm flex items-center gap-2 transition shadow-inner border border-indigo-500">
-        <i class="fa-solid fa-cart-shopping text-emerald-400"></i>
-        <span>कार्ट</span>
-        <span id="cart-badge-count" class="bg-emerald-500 text-white text-xs font-black px-2 py-0.5 rounded-full hidden shadow">0</span>
-      </button>
-    </div>
-
-    <!-- Search & Voice Search Bar inside Header -->
-    <div class="max-w-6xl mx-auto px-4 pb-3">
-      <div class="relative flex items-center bg-white rounded-xl shadow-md overflow-hidden border border-indigo-200">
-        <i class="fa-solid fa-magnifying-glass text-gray-400 pl-3.5 text-sm"></i>
-        <input type="text" id="search-input" oninput="handleSearch()" placeholder="सामान ढूँढें... (जैसे Surf Excel, Chini)" class="w-full py-2.5 px-3 text-sm text-gray-800 focus:outline-none bg-transparent">
-        <button onclick="startVoiceSearch()" id="mic-btn" title="बोलकर खोजें" class="px-3.5 py-2 text-indigo-600 hover:text-indigo-800 transition flex items-center justify-center border-l border-gray-100">
-          <i class="fa-solid fa-microphone text-base"></i>
-        </button>
+  <!-- 🟢 हेडर (Header) -->
+  <header class="sticky top-0 z-30 bg-indigo-600 text-white shadow-md">
+    <div class="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
+      <div>
+        <h1 class="text-xl font-bold tracking-wide">🛍️ Khushi Bazaar</h1>
+        <p class="text-xs text-indigo-200">घर बैठे किराना मंगाएं</p>
       </div>
+      <button onclick="toggleCartModal(true)" class="relative bg-indigo-700 hover:bg-indigo-800 p-2.5 rounded-full transition shadow-inner">
+        🛒 <span id="cart-badge-count" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-indigo-600">0</span>
+      </button>
     </div>
   </header>
 
-  <!-- Hero Banner -->
-  <section class="bg-gradient-to-b from-indigo-50 to-gray-100 py-6 px-4 text-center border-b border-gray-200">
-    <div class="max-w-4xl mx-auto">
-      <span class="bg-indigo-100 text-indigo-800 text-xs font-bold px-3 py-1 rounded-full border border-indigo-200 inline-block mb-2">⚡ सबसे तेज़ डिलीवरी</span>
-      <h2 class="text-2xl md:text-3xl font-extrabold text-gray-900 mb-1">खुशी बाजार में आपका स्वागत है!</h2>
-      <p id="category-banner-desc" class="text-gray-600 text-sm max-w-xl mx-auto">
-        बेहतरीन क्वालिटी के सामान, सही दाम पर। कार्ट में जोड़ें और एक साथ WhatsApp पर ऑर्डर भेजें!
-      </p>
+  <!-- 🔍 सर्च बार (Search Bar) -->
+  <div class="max-w-4xl mx-auto px-4 mt-4">
+    <div class="relative">
+      <input type="text" id="search-input" onkeyup="filterProducts()" placeholder="सामान ढूँढें (जैसे: चीनी, साबुन, तेल)..." class="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-xl shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition">
+      <span class="absolute left-3.5 top-3.5 text-gray-400">🔍</span>
     </div>
-  </section>
+  </div>
 
-  <!-- Category Filter Bar -->
-  <nav class="max-w-6xl mx-auto px-4 pt-5">
-    <div class="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none" id="categories-container">
-      <button onclick="filterCategory('All')" id="btn-All" class="cat-btn bg-indigo-600 text-white px-5 py-2 rounded-full text-sm font-bold whitespace-nowrap shadow-md transition">
-        सब देखें (All)
-      </button>
-    </div>
-  </nav>
-
-  <!-- Products Grid -->
-  <main class="max-w-6xl mx-auto px-4 py-6 flex-grow w-full">
-    <div id="loading" class="text-center py-12">
-      <div class="inline-block animate-spin rounded-full h-10 w-10 border-4 border-indigo-600 border-t-transparent"></div>
-      <p class="mt-3 text-gray-500 font-semibold text-sm">गूगल शीट से सामान लोड हो रहा है...</p>
-    </div>
-
-    <div id="products-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 hidden">
-      <!-- Dynamic Products Will Render Here -->
-    </div>
-
-    <div id="no-products" class="hidden text-center py-16 text-gray-500 bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
-      <i class="fa-solid fa-box-open text-4xl text-gray-300 mb-2"></i>
-      <p class="font-bold text-gray-700">कोई सामान नहीं मिला!</p>
-      <p class="text-xs text-gray-400 mt-1">कृपया सर्च का नाम बदलें या दूसरी कैटेगरी चुनें।</p>
+  <!-- 📦 प्रोडक्ट्स लिस्ट (Products Grid) -->
+  <main class="max-w-4xl mx-auto px-4 mt-6">
+    <h2 class="font-bold text-gray-800 text-lg mb-3">हमारे प्रोडक्ट्स</h2>
+    <div id="product-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+      <div class="col-span-full text-center py-10 text-gray-400">
+         सामान लोड हो रहा है, कृपया प्रतीक्षा करें...
+      </div>
     </div>
   </main>
 
-  <!-- Mobile Sticky Bottom Cart Bar -->
-  <div id="sticky-cart-bar" class="fixed bottom-0 left-0 right-0 bg-gray-900/95 backdrop-blur-md text-white p-3.5 z-40 shadow-2xl flex justify-between items-center hidden border-t border-gray-800">
-    <div>
-      <div id="sticky-cart-items" class="text-xs text-gray-300 font-medium">0 सामान कार्ट में</div>
-      <div id="sticky-cart-total" class="text-lg font-black text-emerald-400">₹0</div>
+  <!-- 🛒 नीचे की स्टिकी बार (Mobile Sticky Cart Bar) -->
+  <div id="sticky-cart-bar" class="hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-20 px-4 py-3">
+    <div class="max-w-4xl mx-auto flex justify-between items-center">
+      <div>
+        <p id="sticky-cart-items" class="text-xs text-gray-500 font-medium">0 सामान</p>
+        <p id="sticky-cart-total" class="text-lg font-bold text-indigo-600">₹0</p>
+      </div>
+      <button onclick="toggleCartModal(true)" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-5 py-2.5 rounded-xl shadow text-sm flex items-center gap-2">
+        कार्ट देखें 🛍️
+      </button>
     </div>
-    <button onclick="toggleCartModal()" class="bg-emerald-500 hover:bg-emerald-600 text-white px-5 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 shadow-lg transition">
-      <i class="fa-solid fa-cart-shopping"></i>
-      <span>कार्ट देखें & ऑर्डर करें</span>
-    </button>
   </div>
 
-  <!-- Cart Modal (Popup) -->
-  <div id="cart-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex justify-end transition-opacity hidden">
-    <div class="bg-white w-full max-w-md h-full flex flex-col justify-between shadow-2xl">
-      
-      <!-- Modal Header -->
-      <div class="bg-indigo-600 text-white px-5 py-4 flex justify-between items-center shadow-md">
-        <h3 class="text-lg font-extrabold flex items-center gap-2">
-          <i class="fa-solid fa-basket-shopping text-emerald-400"></i> आपकी शॉपिंग कार्ट
-        </h3>
-        <button onclick="toggleCartModal()" class="text-white hover:text-gray-200 text-2xl font-bold">&times;</button>
+  <!-- 📋 कार्ट पॉपअप / मॉडल (Cart Modal) -->
+  <div id="cart-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-end transition-opacity">
+    <div class="bg-white w-full max-w-md h-full flex flex-col shadow-2xl">
+      <div class="p-4 bg-indigo-600 text-white flex justify-between items-center">
+        <h3 class="font-bold text-lg">आपकी कार्ट (Shopping Cart)</h3>
+        <button onclick="toggleCartModal(false)" class="text-white text-2xl font-bold hover:text-gray-200">&times;</button>
       </div>
 
-      <!-- Modal Body (Items List) -->
-      <div class="p-5 flex-grow overflow-y-auto" id="cart-items-container">
-        <!-- Cart Items Dynamic Render -->
+      <div id="cart-items-container" class="flex-1 overflow-y-auto p-4">
       </div>
 
-      <!-- Modal Footer -->
-      <div class="p-5 bg-gray-50 border-t border-gray-200">
-        <div class="flex justify-between items-center mb-4">
-          <span class="text-gray-600 font-bold text-sm">कुल राशि (Total Amount):</span>
-          <span class="text-2xl font-black text-indigo-600" id="cart-grand-total">₹0</span>
+      <div id="customer-form-section" class="p-4 border-t border-gray-100 bg-gray-50">
+        <!-- 📍 दूरी चुनाव -->
+        <div class="mb-3">
+          <label class="block text-xs font-bold text-gray-700 mb-1">अपनी डिलीवरी दूरी / इलाका चुनें *</label>
+          <select id="cust-zone" onchange="updateCartUI()" class="w-full p-2.5 bg-white text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 font-medium">
+            <option value="1">1.5 KM के अंदर (लोकल बाज़ार / आसपास)</option>
+            <option value="2">1.5 से 3 KM (मध्यम दूरी)</option>
+            <option value="3">3 से 5 KM (बाहरी इलाका)</option>
+          </select>
         </div>
-        <button onclick="sendWhatsAppOrder()" id="whatsapp-order-btn" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-3.5 rounded-xl font-bold text-center text-base flex justify-center items-center gap-2 shadow-lg transition">
-          <i class="fa-brands fa-whatsapp text-xl"></i> WhatsApp पर ऑर्डर भेजें
+
+        <div class="space-y-2 mb-3">
+          <input type="text" id="cust-name" placeholder="आपका नाम *" class="w-full p-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 bg-white">
+          <input type="tel" id="cust-phone" placeholder="मोबाइल नंबर *" class="w-full p-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 bg-white">
+          <textarea id="cust-address" rows="2" placeholder="पूरा डिलीवरी का पता (मकान नं, लैंडमार्क) *" class="w-full p-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 bg-white"></textarea>
+        </div>
+
+        <div class="bg-white p-3 rounded-lg border border-gray-200 mb-3 space-y-1">
+          <div class="flex justify-between text-xs text-gray-600">
+            <span>सामान का मूल्य (Subtotal):</span>
+            <span id="cart-subtotal" class="font-semibold">₹0</span>
+          </div>
+          <div class="flex justify-between text-xs text-gray-600">
+            <span>डिलीवरी शुल्क:</span>
+            <span id="delivery-info-text" class="font-semibold"></span>
+          </div>
+          <div class="flex justify-between items-center text-base pt-2 border-t border-gray-100 font-bold">
+            <span class="text-gray-800">कुल बिल (Grand Total):</span>
+            <span id="cart-grand-total" class="text-indigo-600 text-xl">₹0</span>
+          </div>
+        </div>
+
+        <button id="whatsapp-order-btn" onclick="sendWhatsAppOrder()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl shadow-lg flex items-center justify-center gap-2 text-base transition">
+          📲 व्हाट्सएप पर ऑर्डर भेजें
         </button>
       </div>
-
     </div>
   </div>
 
-  <footer class="bg-gray-900 text-gray-400 py-6 text-center text-xs mt-auto">
-    <p>© Khushi Bazaar. Powered by Google Sheets.</p>
-  </footer>
-
+  <!-- ⚙️ जावास्क्रिप्ट लॉजिक -->
   <script>
-    const SHEET_ID = '1lnPDL-dkaogbG7cQOsJNm8a_kysIUjEIUqlYTbvEl-Y';
+    // -----------------------------------------------------------------
+    // आपकी सेटिंग्स (व्हाट्सएप नंबर सेट कर दिया गया है)
+    // -----------------------------------------------------------------
+    const SELLER_PHONE = "917970748217"; 
+    const GOOGLE_SHEET_URL = ""; // 👈 अगर गूगल शीट का लिंक हो, तो यहाँ "" के बीच डाल दें
+
+    const ZONE_RULES = {
+      "1": { name: "1.5 KM के अंदर", minFree: 199, charge: 15 },
+      "2": { name: "1.5 से 3 KM", minFree: 499, charge: 30 },
+      "3": { name: "3 से 5 KM", minFree: 799, charge: 50 }
+    };
+    const ABSOLUTE_MIN_ORDER = 99; 
+
     let allProducts = [];
-    let categoryMap = {}; 
-    let currentCategory = 'All';
-    let searchQuery = '';
-    let cart = {}; 
-    let sellerPhone = '919876543210';
+    let cart = {};
 
-    async function fetchGVizData(sheetName) {
+    async function loadProducts() {
+      const grid = document.getElementById('product-grid');
       try {
-        const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`;
-        const res = await fetch(url);
-        const text = await res.text();
-        const jsonMatch = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\);/);
-        if (!jsonMatch) return [];
-        const data = JSON.parse(jsonMatch[1]);
-        
-        const cols = data.table.cols.map(c => c && c.label ? c.label.trim().toLowerCase() : '');
-        const rows = data.table.rows || [];
-
-        return rows.map(r => {
-          let obj = {};
-          r.c.forEach((cell, idx) => {
-            const key = cols[idx] || `col_${idx}`;
-            const val = cell ? (cell.v !== null && cell.v !== undefined ? cell.v : (cell.f || '')) : '';
-            obj[key] = val;
-            obj[`col_${idx}`] = val;
-          });
-          return obj;
-        });
-      } catch(e) {
-        console.error('Fetch error:', e);
-        return [];
-      }
-    }
-
-    async function initStore() {
-      document.getElementById('loading').classList.remove('hidden');
-      
-      let prodRows = await fetchGVizData('Sheet1');
-      if (!prodRows.length) prodRows = await fetchGVizData('Products');
-      
-      let catRows = await fetchGVizData('Sheet2');
-      if (!catRows.length) catRows = await fetchGVizData('Categories');
-
-      catRows.forEach(row => {
-        const catName = row.category || row.col_0 || '';
-        const catDesc = row.categorydescription || row.description || row.col_1 || '';
-        if (catName) {
-          categoryMap[catName.toString().trim()] = catDesc.toString().trim();
+        if (GOOGLE_SHEET_URL && GOOGLE_SHEET_URL.trim() !== "") {
+          const res = await fetch(GOOGLE_SHEET_URL);
+          allProducts = await res.json();
+        } else {
+          allProducts = [
+            { id: "1", name: "ताज़ा अमूल दूध 1L", price: 66, mrp: 70, image: "https://via.placeholder.com/150" },
+            { id: "2", name: "फॉर्च्यून रिफाइंड तेल 1L", price: 135, mrp: 150, image: "https://via.placeholder.com/150" },
+            { id: "3", name: "आशीर्वाद आटा 5KG", price: 245, mrp: 270, image: "https://via.placeholder.com/150" },
+            { id: "4", name: "टाटा नमक 1KG", price: 28, mrp: 30, image: "https://via.placeholder.com/150" }
+          ];
         }
-      });
-
-      allProducts = prodRows.map((row, index) => {
-        const pPhone = row.phone || row.mobile || row.col_5 || '919876543210';
-        if (pPhone && pPhone !== '919876543210') sellerPhone = pPhone;
-
-        return {
-          id: index,
-          name: row.name || row.col_0 || 'Product',
-          category: (row.category || row.col_1 || 'General').toString().trim(),
-          price: parseFloat(row.price || row.col_2 || 0),
-          image: row.image || row.img || row.col_3 || 'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=400',
-          description: row.description || row.desc || row.col_4 || '',
-          phone: pPhone
-        };
-      }).filter(p => p.name && p.name.toLowerCase() !== 'name');
-
-      renderCategories();
-      renderProducts();
-      document.getElementById('loading').classList.add('hidden');
-      document.getElementById('products-grid').classList.remove('hidden');
-    }
-
-    function renderCategories() {
-      const catContainer = document.getElementById('categories-container');
-      const uniqueCats = new Set(['All']);
-      allProducts.forEach(p => { if(p.category) uniqueCats.add(p.category); });
-      Object.keys(categoryMap).forEach(c => uniqueCats.add(c));
-
-      let html = `<button onclick="filterCategory('All')" id="btn-All" class="cat-btn bg-indigo-600 text-white px-5 py-2 rounded-full text-sm font-bold whitespace-nowrap shadow-md">सब देखें (All)</button>`;
-
-      uniqueCats.forEach(cat => {
-        if (cat !== 'All') {
-          html += `<button onclick="filterCategory('${cat.replace(/'/g, "\\'")}')" id="btn-${cat}" class="cat-btn bg-white text-gray-700 hover:bg-gray-100 border border-gray-200 px-5 py-2 rounded-full text-sm font-semibold whitespace-nowrap shadow-sm transition">${cat}</button>`;
-        }
-      });
-
-      catContainer.innerHTML = html;
-    }
-
-    function filterCategory(catName) {
-      currentCategory = catName;
-
-      document.querySelectorAll('.cat-btn').forEach(btn => {
-        btn.className = 'cat-btn bg-white text-gray-700 hover:bg-gray-100 border border-gray-200 px-5 py-2 rounded-full text-sm font-semibold whitespace-nowrap shadow-sm transition';
-      });
-      const activeBtn = document.getElementById(`btn-${catName}`);
-      if (activeBtn) {
-        activeBtn.className = 'cat-btn bg-indigo-600 text-white px-5 py-2 rounded-full text-sm font-bold whitespace-nowrap shadow-md';
-      }
-
-      const bannerDesc = document.getElementById('category-banner-desc');
-      if (catName === 'All') {
-        bannerDesc.innerText = 'बेहतरीन क्वालिटी के सामान, सही दाम पर। कार्ट में जोड़ें और एक साथ WhatsApp पर ऑर्डर भेजें!';
-      } else if (categoryMap[catName]) {
-        bannerDesc.innerText = categoryMap[catName];
-      } else {
-        bannerDesc.innerText = `${catName} कैटेगरी के बेहतरीन प्रोडक्ट्स यहाँ देखें।`;
-      }
-
-      renderProducts();
-    }
-
-    function handleSearch() {
-      searchQuery = document.getElementById('search-input').value.toLowerCase().trim();
-      renderProducts();
-    }
-
-    function startVoiceSearch() {
-      if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        const recognition = new SpeechRecognition();
-        recognition.lang = 'hi-IN';
-
-        const micBtn = document.getElementById('mic-btn');
-        micBtn.classList.add('text-red-500', 'animate-pulse');
-
-        recognition.onresult = (event) => {
-          const transcript = event.results[0][0].transcript;
-          document.getElementById('search-input').value = transcript;
-          handleSearch();
-          micBtn.classList.remove('text-red-500', 'animate-pulse');
-        };
-
-        recognition.onerror = () => {
-          micBtn.classList.remove('text-red-500', 'animate-pulse');
-        };
-
-        recognition.onend = () => {
-          micBtn.classList.remove('text-red-500', 'animate-pulse');
-        };
-
-        recognition.start();
-      } else {
-        alert("आपके ब्राउज़र में बोलकर सर्च करने की सुविधा (Voice Search) सपोर्टेड नहीं है।");
+        renderProducts(allProducts);
+      } catch (err) {
+        grid.innerHTML = `<div class="col-span-full text-center text-red-500 py-6">सामान लोड करने में समस्या आई। कृपया रिफ्रेश करें!</div>`;
       }
     }
 
-    function renderProducts() {
-      const grid = document.getElementById('products-grid');
-      const noProds = document.getElementById('no-products');
-
-      const filtered = allProducts.filter(p => {
-        const matchCategory = (currentCategory === 'All') || (p.category.toLowerCase() === currentCategory.toLowerCase());
-        const matchSearch = !searchQuery || 
-                            p.name.toLowerCase().includes(searchQuery) || 
-                            p.description.toLowerCase().includes(searchQuery) || 
-                            p.category.toLowerCase().includes(searchQuery);
-        return matchCategory && matchSearch;
-      });
-
-      if (filtered.length === 0) {
-        grid.classList.add('hidden');
-        noProds.classList.remove('hidden');
+    function renderProducts(products) {
+      const grid = document.getElementById('product-grid');
+      if (products.length === 0) {
+        grid.innerHTML = `<div class="col-span-full text-center text-gray-400 py-6">कोई सामान नहीं मिला!</div>`;
         return;
       }
 
-      noProds.classList.add('hidden');
-      grid.classList.remove('hidden');
-
-      grid.innerHTML = filtered.map(p => {
-        const inCartQty = cart[p.id] ? cart[p.id].qty : 0;
-
+      grid.innerHTML = products.map(p => {
+        const discount = p.mrp && p.mrp > p.price ? Math.round(((p.mrp - p.price) / p.mrp) * 100) : 0;
         return `
-          <div class="bg-white rounded-2xl shadow-sm p-4 border border-gray-200 flex flex-col justify-between hover:shadow-lg transition group">
+          <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col justify-between p-3 relative">
+            ${discount > 0 ? `<span class="absolute top-2 left-2 bg-green-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">${discount}% OFF</span>` : ''}
+            <img src="${p.image || 'https://via.placeholder.com/150'}" alt="${p.name}" class="w-full h-28 object-contain mb-2">
             <div>
-              <div class="relative mb-3 bg-gray-50 rounded-xl p-2 border border-gray-100 overflow-hidden">
-                <img src="${p.image}" alt="${p.name}" class="w-full h-48 object-contain rounded-lg group-hover:scale-105 transition duration-300" onerror="this.src='https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=400'">
-                <span class="absolute top-2 right-2 bg-indigo-50 text-indigo-700 text-xs font-bold px-2.5 py-1 rounded-full border border-indigo-200 shadow-sm">${p.category}</span>
-              </div>
-              <h4 class="font-bold text-base mb-0.5 text-gray-900 leading-snug">${p.name}</h4>
-              <p class="text-xs text-gray-500 mb-3">${p.description}</p>
-            </div>
-            <div class="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
-              <span class="text-xl font-black text-indigo-600">₹${p.price}</span>
-              
-              <div>
-                ${inCartQty > 0 ? `
-                  <div class="flex items-center gap-2 bg-indigo-50 border border-indigo-200 rounded-lg p-1">
-                    <button onclick="changeQty(${p.id}, -1)" class="w-7 h-7 bg-white rounded font-bold text-indigo-600 shadow-sm hover:bg-indigo-100">-</button>
-                    <span class="font-bold text-sm px-1 text-indigo-900">${inCartQty}</span>
-                    <button onclick="changeQty(${p.id}, 1)" class="w-7 h-7 bg-indigo-600 text-white rounded font-bold shadow-sm hover:bg-indigo-700">+</button>
-                  </div>
-                ` : `
-                  <button onclick="addToCart(${p.id})" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-1.5 shadow-md transition active:scale-95">
-                    <i class="fa-solid fa-plus"></i> कार्ट में जोड़ें
-                  </button>
-                `}
+              <h3 class="font-semibold text-xs sm:text-sm text-gray-800 line-clamp-2 mb-1">${p.name}</h3>
+              <div class="flex items-baseline gap-1.5 mb-2">
+                <span class="font-bold text-sm text-indigo-600">₹${p.price}</span>
+                ${p.mrp ? `<span class="text-xs text-gray-400 line-through">₹${p.mrp}</span>` : ''}
               </div>
             </div>
+            <button onclick="addToCart('${p.id}')" class="w-full bg-indigo-50 hover:bg-indigo-600 text-indigo-600 hover:text-white font-bold py-1.5 text-xs rounded-lg transition border border-indigo-200">
+              + कार्ट में जोड़ें
+            </button>
           </div>
         `;
       }).join('');
     }
 
-    function addToCart(pId) {
-      const prod = allProducts.find(p => p.id === pId);
-      if (!prod) return;
-
-      if (!cart[pId]) {
-        cart[pId] = { item: prod, qty: 1 };
-      } else {
-        cart[pId].qty += 1;
-      }
-      updateCartUI();
-      renderProducts();
+    function filterProducts() {
+      const query = document.getElementById('search-input').value.toLowerCase();
+      const filtered = allProducts.filter(p => p.name.toLowerCase().includes(query));
+      renderProducts(filtered);
     }
 
-    function changeQty(pId, delta) {
-      if (cart[pId]) {
-        cart[pId].qty += delta;
-        if (cart[pId].qty <= 0) {
-          delete cart[pId];
-        }
+    function addToCart(productId) {
+      const product = allProducts.find(p => p.id === productId);
+      if (!product) return;
+
+      if (cart[productId]) {
+        cart[productId].qty += 1;
+      } else {
+        cart[productId] = { item: product, qty: 1 };
       }
       updateCartUI();
-      renderProducts();
+    }
+
+    function changeQty(productId, delta) {
+      if (!cart[productId]) return;
+      cart[productId].qty += delta;
+      if (cart[productId].qty <= 0) {
+        delete cart[productId];
+      }
+      updateCartUI();
     }
 
     function updateCartUI() {
       const cartKeys = Object.keys(cart);
       let totalItems = 0;
-      let grandTotal = 0;
+      let subtotal = 0;
 
-      cartKeys.forEach(id => {
-        totalItems += cart[id].qty;
-        grandTotal += cart[id].qty * cart[id].item.price;
+      cartKeys.forEach(key => {
+        totalItems += cart[key].qty;
+        subtotal += cart[key].qty * cart[key].item.price;
       });
 
-      // Badge Count
+      const zoneKey = document.getElementById('cust-zone') ? document.getElementById('cust-zone').value : "1";
+      const currentRule = ZONE_RULES[zoneKey] || ZONE_RULES["1"];
+
+      let deliveryFee = 0;
+      if (subtotal > 0 && subtotal < currentRule.minFree) {
+        deliveryFee = currentRule.charge;
+      }
+      let grandTotal = subtotal + deliveryFee;
+
       const badge = document.getElementById('cart-badge-count');
       if (totalItems > 0) {
         badge.innerText = totalItems;
@@ -383,7 +228,6 @@
         badge.classList.add('hidden');
       }
 
-      // Sticky Bottom Bar
       const stickyBar = document.getElementById('sticky-cart-bar');
       if (totalItems > 0) {
         stickyBar.classList.remove('hidden');
@@ -393,40 +237,47 @@
         stickyBar.classList.add('hidden');
       }
 
-      // Render Modal Items
-      const modalContainer = document.getElementById('cart-items-container');
-      const grandTotalEl = document.getElementById('cart-grand-total');
-      const orderBtn = document.getElementById('whatsapp-order-btn');
+      document.getElementById('cart-subtotal').innerText = `₹${subtotal}`;
+      document.getElementById('cart-grand-total').innerText = `₹${grandTotal}`;
 
-      grandTotalEl.innerText = `₹${grandTotal}`;
+      const deliveryInfo = document.getElementById('delivery-info-text');
+      if (subtotal >= currentRule.minFree) {
+        deliveryInfo.innerHTML = `<span class="text-green-600 font-bold">फ्री (₹0)</span>`;
+      } else if (subtotal > 0) {
+        let diff = currentRule.minFree - subtotal;
+        deliveryInfo.innerHTML = `<span class="text-orange-600 font-bold">+ ₹${currentRule.charge}</span> <br><span class="text-[10px] text-gray-500">(फ्री डिलीवरी के लिए ₹${diff} और जोड़ें)</span>`;
+      } else {
+        deliveryInfo.innerText = "₹0";
+      }
+
+      const container = document.getElementById('cart-items-container');
+      const formSec = document.getElementById('customer-form-section');
 
       if (cartKeys.length === 0) {
-        modalContainer.innerHTML = `
+        container.innerHTML = `
           <div class="text-center py-16 text-gray-400">
-            <i class="fa-solid fa-cart-flatbed text-5xl text-gray-300 mb-3"></i>
-            <p class="font-bold text-gray-600 text-base">आपकी कार्ट खाली है!</p>
-            <p class="text-xs mt-1 text-gray-400">दुकान से सामान चुनकर कार्ट में जोड़ें।</p>
+            <p class="text-4xl mb-2">🛒</p>
+            <p class="font-semibold text-sm">आपकी कार्ट खाली है!</p>
           </div>
         `;
-        orderBtn.classList.add('opacity-50', 'pointer-events-none');
+        formSec.classList.add('hidden');
       } else {
-        orderBtn.classList.remove('opacity-50', 'pointer-events-none');
-        modalContainer.innerHTML = cartKeys.map(id => {
-          const cItem = cart[id];
-          const descStr = cItem.item.description ? ` (${cItem.item.description})` : '';
+        formSec.classList.remove('hidden');
+        container.innerHTML = cartKeys.map(key => {
+          const c = cart[key];
           return `
             <div class="flex items-center justify-between pb-3 mb-3 border-b border-gray-100">
               <div class="flex items-center gap-3">
-                <img src="${cItem.item.image}" class="w-12 h-12 object-contain rounded-lg border border-gray-200 bg-gray-50 p-1">
+                <img src="${c.item.image}" class="w-12 h-12 object-contain rounded border border-gray-100">
                 <div>
-                  <h5 class="font-bold text-sm text-gray-900">${cItem.item.name}${descStr}</h5>
-                  <p class="text-xs text-indigo-600 font-bold">₹${cItem.item.price} × ${cItem.qty} = ₹${cItem.item.price * cItem.qty}</p>
+                  <h5 class="font-bold text-xs text-gray-800">${c.item.name}</h5>
+                  <p class="text-xs text-indigo-600 font-semibold">₹${c.item.price} × ${c.qty} = ₹${c.item.price * c.qty}</p>
                 </div>
               </div>
               <div class="flex items-center gap-2 bg-gray-100 p-1 rounded-lg">
-                <button onclick="changeQty(${id}, -1)" class="w-6 h-6 bg-white rounded font-bold text-gray-700 text-xs shadow-sm hover:bg-gray-200">-</button>
-                <span class="font-bold text-xs px-1">${cItem.qty}</span>
-                <button onclick="changeQty(${id}, 1)" class="w-6 h-6 bg-indigo-600 text-white rounded font-bold text-xs shadow-sm hover:bg-indigo-700">+</button>
+                <button onclick="changeQty('${key}', -1)" class="w-6 h-6 bg-white rounded font-bold text-gray-700 text-xs">-</button>
+                <span class="font-bold text-xs px-1">${c.qty}</span>
+                <button onclick="changeQty('${key}', 1)" class="w-6 h-6 bg-indigo-600 text-white rounded font-bold text-xs">+</button>
               </div>
             </div>
           `;
@@ -434,4 +285,61 @@
       }
     }
 
-    function toggleCartMo
+    function toggleCartModal(show) {
+      const modal = document.getElementById('cart-modal');
+      if (show) modal.classList.remove('hidden');
+      else modal.classList.add('hidden');
+    }
+
+    function sendWhatsAppOrder() {
+      const cartKeys = Object.keys(cart);
+      if (cartKeys.length === 0) return;
+
+      let subtotal = 0;
+      cartKeys.forEach(key => subtotal += cart[key].qty * cart[key].item.price);
+
+      if (subtotal < ABSOLUTE_MIN_ORDER) {
+        alert(`क्षमा करें! न्यूनतम ऑर्डर राशि ₹${ABSOLUTE_MIN_ORDER} होनी चाहिए। कृपया कुछ और सामान जोड़ें।`);
+        return;
+      }
+
+      const zoneKey = document.getElementById('cust-zone').value;
+      const currentRule = ZONE_RULES[zoneKey];
+      const name = document.getElementById('cust-name').value.trim();
+      const phone = document.getElementById('cust-phone').value.trim();
+      const address = document.getElementById('cust-address').value.trim();
+
+      if (!name || !phone || !address) {
+        alert("कृपया अपना नाम, मोबाइल नंबर और पूरा पता दर्ज करें!");
+        return;
+      }
+
+      let deliveryFee = subtotal >= currentRule.minFree ? 0 : currentRule.charge;
+      let grandTotal = subtotal + deliveryFee;
+
+      let msg = `🛍️ *Khushi Bazaar - नया ऑर्डर*\n\n`;
+      msg += `*👤 ग्राहक विवरण:*\n• नाम: ${name}\n• मोबाइल: ${phone}\n• दूरी/इलाका: ${currentRule.name}\n• पता: ${address}\n\n`;
+      msg += `*📦 ऑर्डर की सूची:*\n`;
+
+      cartKeys.forEach((key, idx) => {
+        const item = cart[key].item;
+        const qty = cart[key].qty;
+        msg += `${idx + 1}. *${item.name}* (x${qty}) = ₹${item.price * qty}\n`;
+      });
+
+      msg += `\n-----------------------------------\n`;
+      msg += `सामान का मूल्य: ₹${subtotal}\n`;
+      msg += `डिलीवरी शुल्क (${currentRule.name}): ${deliveryFee === 0 ? 'FREE' : '₹' + deliveryFee}\n`;
+      msg += `💰 *कुल बिल (Grand Total): ₹${grandTotal}*\n`;
+      msg += `-----------------------------------\n\n`;
+      msg += `कृपया मेरा ऑर्डर कन्फर्म करें। धन्यवाद!`;
+
+      const cleanPhone = String(SELLER_PHONE).replace(/\D/g, '');
+      const waUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`;
+      window.open(waUrl, '_blank');
+    }
+
+    window.onload = loadProducts;
+  </script>
+</body>
+</html>
