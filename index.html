@@ -403,4 +403,141 @@
       let totalItems = 0, subtotal = 0;
       cartKeys.forEach(id => {
         totalItems += cart[id].qty;
+   subtotal += cart[id].qty * cart[id].item.price;
+      });
+
+      deliveryStatus = calculateDelivery(subtotal);
+      const grandTotal = subtotal + (deliveryStatus.charge || 0);
+
+      const badge = document.getElementById('cart-badge-count');
+      if (totalItems > 0) { badge.innerText = totalItems; badge.classList.remove('hidden'); }
+      else badge.classList.add('hidden');
+
+      const stickyBar = document.getElementById('sticky-cart-bar');
+      if (totalItems > 0) {
+        stickyBar.classList.remove('hidden');
+        document.getElementById('sticky-cart-items').innerText = `${totalItems} सामान कार्ट में`;
+        document.getElementById('sticky-cart-total').innerText = `₹${grandTotal}`;
+      } else stickyBar.classList.add('hidden');
+
+      const modalContainer = document.getElementById('cart-items-container');
+      const orderBtn = document.getElementById('whatsapp-order-btn');
+      const deliveryBox = document.getElementById('delivery-info-box');
+      const noDeliveryBox = document.getElementById('no-delivery-box');
+      const minOrderWarning = document.getElementById('min-order-warning');
+      const freeDeliveryHint = document.getElementById('free-delivery-hint');
+
+      document.getElementById('cart-items-subtotal').innerText = `₹${subtotal}`;
+      document.getElementById('cart-grand-total').innerText = `₹${grandTotal}`;
+
+      if (cartKeys.length === 0) {
+        modalContainer.innerHTML = `
+          <div class="text-center py-16 text-gray-400">
+            <p class="text-4xl mb-3">🛒</p>
+            <p class="font-medium text-base">आपकी कार्ट खाली है!</p>
+            <p class="text-xs mt-1 text-gray-400">दुकान से सामान चुनकर कार्ट में जोड़ें।</p>
+          </div>
+        `;
+        orderBtn.classList.add('opacity-50', 'pointer-events-none');
+        deliveryBox.classList.add('hidden');
+        noDeliveryBox.classList.add('hidden');
+        return;
+      }
+
+      modalContainer.innerHTML = cartKeys.map(id => {
+        const cItem = cart[id];
+        const descStr = cItem.item.description ? ` (${cItem.item.description})` : '';
+        return `
+          <div class="flex items-center justify-between pb-3 mb-3 border-b border-gray-100">
+            <div class="flex items-center gap-3">
+              <img src="${cItem.item.image}" class="w-12 h-12 object-contain rounded-lg border border-gray-100">
+              <div>
+                <h5 class="font-bold text-sm text-gray-900">${cItem.item.name}${descStr}</h5>
+                <p class="text-xs text-indigo-600 font-semibold">₹${cItem.item.price} × ${cItem.qty} = ₹${cItem.item.price * cItem.qty}</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 bg-gray-100 p-1 rounded-lg">
+              <button onclick="changeQty(${id}, -1)" class="w-6 h-6 bg-white rounded font-bold text-gray-700 text-xs shadow-sm">-</button>
+              <span class="font-bold text-xs px-1">${cItem.qty}</span>
+              <button onclick="changeQty(${id}, 1)" class="w-6 h-6 bg-indigo-600 text-white rounded font-bold text-xs shadow-sm">+</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      let canOrder = true;
+      if (deliveryStatus.reason === 'out-of-range') {
+        deliveryBox.classList.add('hidden');
+        noDeliveryBox.classList.remove('hidden');
+        canOrder = false;
+      } else {
+        noDeliveryBox.classList.add('hidden');
+        if (deliveryStatus.reason === 'no-location') {
+          deliveryBox.classList.remove('hidden');
+          document.getElementById('delivery-distance-text').innerText = 'लोकेशन ऑन नहीं है';
+          document.getElementById('delivery-charge-text').innerText = 'लोकेशन देने पर पता चलेगा';
+        } else {
+          deliveryBox.classList.remove('hidden');
+          document.getElementById('delivery-distance-text').innerText = `${customerDistanceKm.toFixed(1)} km`;
+          document.getElementById('delivery-charge-text').innerText = deliveryStatus.isFree ? 'FREE 🎉' : `₹${deliveryStatus.charge}`;
+          if (!deliveryStatus.isFree) {
+            freeDeliveryHint.classList.remove('hidden');
+            freeDeliveryHint.innerText = `₹${deliveryStatus.freeAbove} या उससे ज़्यादा का ऑर्डर करें और डिलीवरी FREE पाएं!`;
+          } else freeDeliveryHint.classList.add('hidden');
+        }
+      }
+
+      if (subtotal < MIN_ORDER) {
+        minOrderWarning.classList.remove('hidden');
+        minOrderWarning.innerText = `⚠️ न्यूनतम ऑर्डर ₹${MIN_ORDER} का होना चाहिए। और ₹${MIN_ORDER - subtotal} का सामान जोड़ें।`;
+        canOrder = false;
+      } else minOrderWarning.classList.add('hidden');
+
+      if (canOrder) orderBtn.classList.remove('opacity-50', 'pointer-events-none');
+      else orderBtn.classList.add('opacity-50', 'pointer-events-none');
+    }
+
+    function toggleCartModal() {
+      document.getElementById('cart-modal').classList.toggle('hidden');
+    }
+
+    function sendWhatsAppOrder() {
+      const cartKeys = Object.keys(cart);
+      if (cartKeys.length === 0) return;
+      let subtotal = 0;
+      cartKeys.forEach(id => { subtotal += cart[id].qty * cart[id].item.price; });
+
+      const delivery = calculateDelivery(subtotal);
+      if (subtotal < MIN_ORDER) { alert(`न्यूनतम ऑर्डर ₹${MIN_ORDER} का होना चाहिए।`); return; }
+      if (delivery.reason === 'out-of-range') { alert('माफ़ कीजिए, आपकी लोकेशन डिलीवरी दायरे (3 km) से बाहर है।'); return; }
+      if (delivery.reason === 'no-location') { alert('कृपया पहले लोकेशन ऑन करें ताकि डिलीवरी चार्ज तय हो सके।'); requestLocation(); return; }
+
+      const grandTotal = subtotal + delivery.charge;
+      let msg = `🛍️ *Khushi Bazaar - नया ऑर्डर*\n\n`;
+      cartKeys.forEach((id, idx) => {
+        const item = cart[id].item;
+        const qty = cart[id].qty;
+        const itemTotal = item.price * qty;
+        const descStr = item.description ? ` (${item.description})` : '';
+        msg += `${idx + 1}. *${item.name}${descStr}*\n   मात्रा: ${qty} | मूल्य: ₹${itemTotal}\n`;
+      });
+      msg += `\n-----------------------------------\n`;
+      msg += `सामान का मूल्य: ₹${subtotal}\n`;
+      msg += `डिलीवरी दूरी: ${customerDistanceKm.toFixed(1)} km\n`;
+      msg += `डिलीवरी चार्ज: ${delivery.isFree ? 'FREE' : '₹' + delivery.charge}\n`;
+      msg += `💰 *कुल बिल (Grand Total): ₹${grandTotal}*\n`;
+      msg += `-----------------------------------\n\n`;
+      if (customerLocation) {
+        msg += `📍 *मेरी लाइव लोकेशन:*\nhttps://www.google.com/maps?q=${customerLocation.lat},${customerLocation.lng}\n\n`;
+      }
+      msg += `कृपया मेरा ऑर्डर कन्फर्म करें और डिलीवरी का समय बताएं। धन्यवाद!`;
+
+      const waUrl = `https://wa.me/${SELLER_WHATSAPP}?text=${encodeURIComponent(msg)}`;
+      window.open(waUrl, '_blank');
+    }
+
+    window.onload = initStore;
+  </script>
+</body>
+</html>     totalItems += cart[id].qty;
       
