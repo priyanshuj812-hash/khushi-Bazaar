@@ -191,10 +191,6 @@
     }
 
     // ---------------- GOOGLE SHEET DATA FETCH (JSONP) ----------------
-    // Google ka gviz endpoint normal fetch()/XHR ko CORS ki वजह se block
-    // kar deta hai. Isliye <script> tag (JSONP) ka use kiya gaya hai,
-    // jo CORS se restrict nahi hota — ye public Google Sheet padhne ka
-    // standard tareeka hai.
     function fetchGVizData(sheetName) {
       return new Promise((resolve, reject) => {
         const callbackName = 'gvizCB_' + Math.random().toString(36).slice(2) + '_' + Date.now();
@@ -278,14 +274,27 @@
           if (catName) categoryMap[catName.toString().trim()] = catDesc.toString().trim();
         });
 
-        allProducts = prodRows.map((row, index) => ({
-          id: index,
-          name: row.name || row.col_0 || 'Product',
-          category: (row.category || row.col_1 || 'General').toString().trim(),
-          price: parseFloat(row.price || row.col_2 || 0),
-          image: row.image || row.img || row.col_3 || 'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=400',
-          description: row.description || row.desc || row.col_4 || ''
-        })).filter(p => p.name && p.name.toLowerCase() !== 'name');
+        allProducts = prodRows.map((row, index) => {
+          const rawImage = row.image || row.img || row.col_3 || '';
+          // Ek hi cell me comma se alag kiye hue multiple image URLs support karta hai
+          const images = rawImage
+            .toString()
+            .split(',')
+            .map(s => s.trim())
+            .filter(s => s.length > 0);
+          if (images.length === 0) {
+            images.push('https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=400');
+          }
+          return {
+            id: index,
+            name: row.name || row.col_0 || 'Product',
+            category: (row.category || row.col_1 || 'General').toString().trim(),
+            price: parseFloat(row.price || row.col_2 || 0),
+            images: images,
+            image: images[0],
+            description: row.description || row.desc || row.col_4 || ''
+          };
+        }).filter(p => p.name && p.name.toLowerCase() !== 'name');
 
         if (!allProducts.length) {
           throw new Error('Sheet में rows तो मिलीं लेकिन "name" column खाली/गलत नाम का है। Row 1 में column header ठीक "name" होना चाहिए।');
@@ -352,10 +361,17 @@
         return `
           <div class="bg-white rounded-2xl shadow-sm p-4 border border-gray-100 flex flex-col justify-between hover:shadow-md transition">
             <div>
-              <div class="relative mb-4">
-                <img src="${p.image}" alt="${p.name}" class="w-full h-48 object-contain rounded-xl" onerror="this.src='https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=400'">
+              <div class="relative mb-2">
+                <img id="main-img-${p.id}" src="${p.image}" alt="${p.name}" class="w-full h-48 object-contain rounded-xl" onerror="this.src='https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=400'">
                 <span class="absolute top-2 right-2 bg-indigo-100 text-indigo-800 text-xs font-semibold px-2.5 py-1 rounded-full border border-indigo-200">${p.category}</span>
               </div>
+              ${p.images.length > 1 ? `
+                <div class="flex gap-2 mb-4 overflow-x-auto pb-1">
+                  ${p.images.map((imgUrl, i) => `
+                    <img src="${imgUrl}" onclick="document.getElementById('main-img-${p.id}').src='${imgUrl}'" class="w-12 h-12 object-contain rounded-lg border-2 ${i === 0 ? 'border-indigo-500' : 'border-gray-200'} cursor-pointer flex-shrink-0" onerror="this.style.display='none'">
+                  `).join('')}
+                </div>
+              ` : `<div class="mb-4"></div>`}
               <h4 class="font-bold text-lg mb-1 text-gray-900">${p.name}</h4>
               <p class="text-sm text-gray-500 mb-3">${p.description}</p>
             </div>
@@ -371,7 +387,7 @@
                 ` : `
                   <button onclick="addToCart(${p.id})" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-1 shadow-sm transition">
                     ➕ कार्ट में जोड़ें
-                  </button>
+               </button>
                 `}
               </div>
             </div>
@@ -403,7 +419,7 @@
       let totalItems = 0, subtotal = 0;
       cartKeys.forEach(id => {
         totalItems += cart[id].qty;
-   subtotal += cart[id].qty * cart[id].item.price;
+        subtotal += cart[id].qty * cart[id].item.price;
       });
 
       deliveryStatus = calculateDelivery(subtotal);
@@ -539,5 +555,9 @@
     window.onload = initStore;
   </script>
 </body>
-</html>     
+</html>
+
+            
+          
       
+                
