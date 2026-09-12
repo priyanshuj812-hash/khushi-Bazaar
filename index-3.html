@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Khushi Mart</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  img { touch-action: manipulation; }
+  body { touch-action: manipulation; }
+</style>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans min-h-screen flex flex-col pb-24 md:pb-8">
+
+<!-- Header -->
+<header class="bg-indigo-600 text-white sticky top-0 z-40 shadow-md">
+<div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+<h1 class="text-2xl font-bold flex items-center gap-2">🛍️ Khushi Mart</h1>
+<button onclick="toggleCartModal()" class="relative bg-indigo-700 hover:bg-indigo-800 text-white px-4 py-2 rounded-full font-semibold text-sm flex items-center gap-2 transition shadow-inner">
+🛒 कार्ट
+<span id="cart-badge-count" class="bg-green-500 text-white text-xs font-bold px-2 py-0.5 rounded-full hidden">0</span>
+</button>
+</div>
+</header>
+
+<!-- Sale Banner Carousel (controlled from Google Sheet "Banner" tab) -->
+<div id="sale-banner-container" class="hidden relative overflow-hidden">
+  <div id="banner-slides"></div>
+  <div id="banner-dots" class="absolute bottom-2 left-0 right-0 flex justify-center gap-1.5 z-10"></div>
+</div>
+
+<!-- Location Status Bar -->
+<div id="location-bar" class="bg-yellow-50 border-b border-yellow-200 px-4 py-2.5 text-center text-sm font-medium text-yellow-800 flex items-center justify-center gap-2">
+<span id="location-status-text">📍 डिलीवरी चार्ज जानने के लिए लोकेशन ऑन करें</span>
+<button onclick="requestLocation()" id="location-btn" class="bg-yellow-600 text-white px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap">लोकेशन दें</button>
+</div>
+
+<!-- Main Banner -->
+<section class="bg-indigo-50 py-8 px-4 text-center border-b border-indigo-100">
+<h2 class="text-3xl font-extrabold text-indigo-900 mb-2">खुशी मार्ट में आपका स्वागत है!</h2>
+<p id="category-banner-desc" class="text-gray-600 text-base max-w-2xl mx-auto">
+बेहतरीन क्वालिटी के प्रोडक्ट्स, सबसे कम दामों में। अपने पसंदीदा सामान कार्ट में जोड़ें और एक साथ ऑर्डर करें।
+</p>
+</section>
+
+<!-- Search Bar -->
+<div class="max-w-6xl mx-auto px-4 pt-6">
+<input type="text" id="search-input" oninput="handleSearch(this.value)" placeholder="🔍 प्रोडक्ट खोजें..." class="w-full px-4 py-3 rounded-xl border border-gray-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 text-sm">
+</div>
+
+<!-- Category Filter Bar -->
+<nav class="max-w-6xl mx-auto px-4 pt-4">
+<div class="flex items-center gap-2 overflow-x-auto pb-2" id="categories-container">
+<button onclick="filterCategory('All')" id="btn-All" class="cat-btn bg-indigo-600 text-white px-5 py-2 rounded-full text-sm font-semibold whitespace-nowrap shadow-sm">
+सब देखें (All)
+</button>
+</div>
+</nav>
+
+<!-- Products Grid -->
+<main class="max-w-6xl mx-auto px-4 py-8 flex-grow w-full">
+<div id="loading" class="text-center py-12">
+<div class="inline-block animate-spin rounded-full h-10 w-10 border-4 border-indigo-600 border-t-transparent"></div>
+<p class="mt-3 text-gray-500 font-medium">गूगल शीट से सामान लोड हो रहा है...</p>
+</div>
+
+<div id="load-error" class="hidden text-center py-12 text-red-600 bg-red-50 border border-red-200 rounded-xl px-4">
+<p class="font-bold text-lg mb-2">⚠️ सामान लोड नहीं हो पाया</p>
+<p id="load-error-detail" class="text-sm font-mono break-words"></p>
+<p class="text-sm mt-3 text-gray-600">कृपया इस पूरे message का स्क्रीनशॉट लेकर भेजें।</p>
+</div>
+
+<div id="products-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 hidden">
+<!-- Dynamic Products Will Render Here -->
+</div>
+
+<div id="load-more-container" class="hidden text-center mt-6">
+<button onclick="loadMore()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-semibold text-sm shadow-sm">और सामान देखें (Load More)</button>
+</div>
+
+<div id="no-products" class="hidden text-center py-12 text-gray-500">
+इस कैटेगरी में अभी कोई सामान उपलब्ध नहीं है।
+</div>
+</main>
+
+<!-- Mobile Sticky Bottom Cart Bar -->
+<div id="sticky-cart-bar" class="fixed bottom-0 left-0 right-0 bg-indigo-900 text-white p-4 z-40 shadow-2xl flex justify-between items-center hidden border-t border-indigo-700">
+<div>
+<div id="sticky-cart-items" class="text-xs text-indigo-200 font-medium">0 सामान कार्ट में</div>
+<div id="sticky-cart-total" class="text-lg font-bold">₹0</div>
+</div>
+<button onclick="toggleCartModal()" class="bg-green-500 hover:bg-green-600 text-white px-5 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 shadow">
+🛒 कार्ट देखें & ऑर्डर करें
+</button>
+</div>
+
+<!-- Cart Modal (Popup) -->
+<div id="cart-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-end transition-opacity hidden">
+<div class="bg-white w-full max-w-md h-full flex flex-col justify-between shadow-2xl">
+<div class="bg-indigo-600 text-white px-5 py-4 flex justify-between items-center">
+<h3 class="text-xl font-bold flex items-center gap-2">🛒 आपकी शॉपिंग कार्ट</h3>
+<button onclick="toggleCartModal()" class="text-white hover:text-indigo-200 text-2xl font-bold">&times;</button>
+</div>
+<div class="p-5 flex-grow overflow-y-auto" id="cart-items-container">
+</div>
+<div class="p-5 bg-gray-50 border-t border-gray-200">
+<div id="delivery-info-box" class="mb-4 p-3 rounded-xl bg-indigo-50 border border-indigo-100 text-sm hidden">
+<div class="flex justify-between items-center text-gray-700">
+<span>दूरी (Distance):</span>
+<span id="delivery-distance-text" class="font-semibold">--</span>
+</div>
+<div class="flex justify-between items-center text-gray-700 mt-1">
+<span>डिलीवरी चार्ज:</span>
+<span id="delivery-charge-text" class="font-semibold">--</span>
+</div>
+<div id="min-order-warning" class="text-red-600 font-semibold mt-2 hidden"></div>
+<div id="free-delivery-hint" class="text-green-600 font-semibold mt-2 hidden"></div>
+</div>
+<div id="no-delivery-box" class="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-700 font-semibold text-center hidden">
+⚠️ माफ़ कीजिए, आपकी लोकेशन 3 km डिलीवरी दायरे से बाहर है। इस समय डिलीवरी उपलब्ध नहीं है।
+</div>
+<div class="flex justify-between items-center mb-1">
+<span class="text-gray-600 font-medium text-sm">सामान का कुल मूल्य:</span>
+<span class="font-semibold text-gray-800" id="cart-items-subtotal">₹0</span>
+</div>
+<div class="flex justify-between items-center mb-4">
+<span class="text-gray-600 font-semibold">कुल राशि (Grand Total):</span>
+<span class="text-2xl font-bold text-indigo-600" id="cart-grand-total">₹0</span>
+</div>
+<button onclick="sendWhatsAppOrder()" id="whatsapp-order-btn" class="w-full bg-green-500 hover:bg-green-600 text-white py-3.5 rounded-xl font-bold text-center text-base flex justify-center items-center gap-2 shadow-md">
+💬 WhatsApp पर ऑर्डर भेजें
+</button>
+</div>
+</div>
+</div>
+
+<!-- Image Zoom Lightbox -->
+<div id="image-lightbox" class="fixed inset-0 bg-black bg-opacity-90 z-50 hidden items-center justify-center p-4" onclick="closeLightbox()">
+<img id="lightbox-img" src="" class="max-w-full max-h-full object-contain rounded-lg" onclick="event.stopPropagation()">
+<button onclick="closeLightbox()" class="absolute top-4 right-4 text-white text-3xl font-bold">&times;</button>
+</div>
+
+<footer class="bg-gray-900 text-gray-400 py-6 text-center text-sm mt-auto">
+<p>© Khushi Mart. Powered by Google Sheets.</p>
+</footer>
+<script>
+const SHEET_ID = '1lnPDL-dkaogbG7cQOsJNm8a_kysIUjEIUqlYTbvEl-Y';
+
+const SHOP_LAT = 22.6850952;
+const SHOP_LNG = 84.5478540;
+const SELLER_WHATSAPP = '917970748217';
+const MIN_ORDER = 99;
+const PRODUCTS_PER_PAGE = 24;
+
+const DELIVERY_RULES = [
+  { upto: 1, freeAbove: 200, charge: 15 },
+  { upto: 2, freeAbove: 300, charge: 30 },
+  { upto: 3, freeAbove: 400, charge: 40 }
+];
+
+let allProducts = [];
+let categoryMap = {};
+let currentCategory = 'All';
+let searchQuery = '';
+let displayCount = PRODUCTS_PER_PAGE;
+let cart = {};
+
+let customerLocation = null;
+let customerDistanceKm = null;
+let deliveryStatus = { allowed: false, charge: 0, reason: 'no-location' };
+let bannerInterval = null;
+
+function getDistanceKm(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
+function requestLocation() {
+  const statusText = document.getElementById('location-status-text');
+  const btn = document.getElementById('location-btn');
+  if (!navigator.geolocation) {
+    statusText.innerText = '⚠️ आपका ब्राउज़र लोकेशन सपोर्ट नहीं करता। मैन्युअल ऑर्डर के लिए WhatsApp करें।';
+    btn.classList.add('hidden');
+    return;
+  }
+  statusText.innerText = '📍 लोकेशन पता की जा रही है...';
+  btn.disabled = true;
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      customerLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+      customerDistanceKm = getDistanceKm(SHOP_LAT, SHOP_LNG, customerLocation.lat, customerLocation.lng);
+      updateLocationBar();
+      updateCartUI();
+    },
+    (err) => {
+      statusText.innerText = '⚠️ लोकेशन नहीं मिली। कृपया लोकेशन परमिशन ऑन करें।';
+      btn.disabled = false;
+      btn.classList.remove('hidden');
+    },
+    { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+  );
+}
+
+function updateLocationBar() {
+  const bar = document.getElementById('location-bar');
+  const statusText = document.getElementById('location-status-text');
+  const btn = document.getElementById('location-btn');
+  if (customerDistanceKm === null) return;
+  if (customerDistanceKm > 3) {
+    bar.className = 'bg-red-50 border-b border-red-200 px-4 py-2.5 text-center text-sm font-medium text-red-700 flex items-center justify-center gap-2';
+    statusText.innerText = `⚠️ आप दुकान से ${customerDistanceKm.toFixed(1)} km दूर हैं। डिलीवरी सिर्फ 3 km तक उपलब्ध है।`;
+    btn.classList.add('hidden');
+  } else {
+    bar.className = 'bg-green-50 border-b border-green-200 px-4 py-2.5 text-center text-sm font-medium text-green-700 flex items-center justify-center gap-2';
+    statusText.innerText = `✅ लोकेशन मिल गई — दुकान से आपकी दूरी: ${customerDistanceKm.toFixed(1)} km`;
+    btn.classList.add('hidden');
+  }
+}
+
+function calculateDelivery(subtotal) {
+  if (customerDistanceKm === null) return { allowed: null, charge: 0, reason: 'no-location' };
+  if (customerDistanceKm > 3) return { allowed: false, charge: 0, reason: 'out-of-range' };
+  const rule = DELIVERY_RULES.find(r => customerDistanceKm <= r.upto);
+  if (!rule) return { allowed: false, charge: 0, reason: 'out-of-range' };
+  const isFree = subtotal >= rule.freeAbove;
+  return { allowed: true, charge: isFree ? 0 : rule.charge, freeAbove: rule.freeAbove, isFree, reason: 'ok' };
+}
+
+function fetchGVizData(sheetName) {
+  return new Promise((resolve) => {
+    const callbackName = 'gvizCB_' + Math.random().toString(36).slice(2) + '_' + Date.now();
+    const timeoutId = setTimeout(() => { cleanup(); resolve([]); }, 12000);
+    function cleanup() {
+      clearTimeout(timeoutId);
+      delete window[callbackName];
+      if (script.parentNode) script.parentNode.removeChild(script);
+    }
+    window[callbackName] = function (data) {
+      cleanup();
+      try {
+        if (!data || data.status === 'error' || !data.table) { resolve([]); return; }
+        const cols = data.table.cols.map(c => c && c.label ? c.label.trim().toLowerCase() : '');
+        const rows = data.table.rows || [];
+        const result = rows.map(r => {
+          let obj = {};
+          (r.c || []).forEach((cell, idx) => {
+            const key = cols[idx] || `col_${idx}`;
+            const val = cell ? (cell.v !== null && cell.v !== undefined ? cell.v : (cell.f || '')) : '';
+            obj[key] = val;
+            obj[`col_${idx}`] = val;
+          });
+          return obj;
+        });
+        resolve(result);
+      } catch (e) { resolve([]); }
+    };
+    const script = document.createElement('script');
+    script.src = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json;responseHandler:${callbackName}&sheet=${encodeURIComponent(sheetName)}`;
+    script.onerror = () => { cleanup(); resolve([]); };
+    document.body.appendChild(script);
+  });
+}
+
+function showLoadError(message) {
+  document.getElementById('loading').classList.add('hidden');
+  const errBox = document.getElementById('load-error');
+  const errDetail = document.getElementById('load-error-detail');
+  errBox.classList.remove('hidden');
+  errDetail.innerText = message;
+}
+
+function renderBanner(bannerRows) {
+  const container = document.getElementById('sale-banner-container');
+  const slidesDiv = document.getElementById('banner-slides');
+  const dotsDiv = document.getElementById('banner-dots');
+
+  const active = (bannerRows || []).filter(row => {
+    const status = (row.status || row.col_0 || '').toString().trim().toLowerCase();
+    return status === 'on' || status === 'yes' || status === 'true';
+  });
+
+  if (bannerInterval) { clearInterval(bannerInterval); bannerInterval = null; }
+
+  if (!active.length) {
+    container.classList.add('hidden');
+    slidesDiv.innerHTML = '';
+    dotsDiv.innerHTML = '';
+    return;
+  }
+
+  slidesDiv.innerHTML = active.map((row, i) => {
+    const text = (row.text || row.col_1 || '').toString().trim();
+    const image = (row.image || row.col_2 || '').toString().trim();
+    const inner = image
+      ? `<img src="${image}" alt="Sale Banner" class="w-full max-h-60 object-cover">`
+      : `<div class="bg-gradient-to-r from-pink-500 to-red-500 text-white text-center py-3 px-4 font-bold text-sm">🎉 ${text}</div>`;
+    return `<div class="banner-slide" data-index="${i}" style="${i === 0 ? '' : 'display:none;'}">${inner}</div>`;
+  }).join('');
+
+  if (active.length > 1) {
+    dotsDiv.innerHTML = active.map((_, i) =>
+      `<span class="w-2 h-2 rounded-full transition-all" data-dot="${i}" style="background:${i === 0 ? '#ffffff' : 'rgba(255,255,255,0.5)'}"></span>`
+    ).join('');
+  } else {
+    dotsDiv.innerHTML = '';
+  }
+
+  container.classList.remove('hidden');
+
+  if (active.length > 1) {
+    let current = 0;
+    bannerInterval = setInterval(() => {
+      const slides = slidesDiv.querySelectorAll('.banner-slide');
+      const dots = dotsDiv.querySelectorAll('[data-dot]');
+      if (!slides.length) return;
+      slides[current].style.display = 'none';
+      if (dots[current]) dots[current].style.background = 'rgba(255,255,255,0.5)';
+      current = (current + 1) % slides.length;
+      slides[current].style.display = '';
+      if (dots[current]) dots[current].style.background = '#ffffff';
+    }, 3500);
+  }
+}
+
+async function initStore() {
+  document.getElementById('loading').classList.remove('hidden');
+  try {
+    const withTimeout = (promise, ms) => Promise.race([
+      promise,
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout: 10 सेकंड में जवाब नहीं आया')), ms))
+    ]);
+    let prodRows = await withTimeout(fetchGVizData('Sheet1'), 10000);
+    if (!prodRows.length) prodRows = await withTimeout(fetchGVizData('Products'), 10000);
+    if (!prodRows.length) throw new Error('Sheet से कोई product row नहीं मिली।');
+
+    let catRows = await withTimeout(fetchGVizData('Sheet2'), 10000);
+    if (!catRows.length) catRows = await withTimeout(fetchGVizData('Categories'), 10000);
+    catRows.forEach(row => {
+      const catName = row.category || row.col_0 || '';
+      const catDesc = row.categorydescription || row.description || row.col_1 || '';
+      if (catName) categoryMap[catName.toString().trim()] = catDesc.toString().trim();
+    });
+
+    let bannerRows = await fetchGVizData('Banner');
+    renderBanner(bannerRows);
+
+    allProducts = prodRows.map((row, index) => {
+      const rawImage = row.image || row.img || row.col_3 || '';
+      const images = rawImage.toString().split('|').map(s => s.trim()).filter(s => s.length > 0);
+      if (images.length === 0) images.push('https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=400');
+      return {
+        id: index,
+        name: row.name || row.col_0 || 'Product',
+        category: (row.category || row.col_1 || 'General').toString().trim(),
+        price: parseFloat(row.price || row.col_2 || 0),
+        images: images,
+        image: images[0],
+        description: row.description || row.desc || row.col_4 || ''
+      };
+    }).filter(p => p.name && p.name.toLowerCase() !== 'name');
+
+    if (!allProducts.length) throw new Error('Sheet में rows तो मिलीं लेकिन "name" column खाली/गलत नाम का है।');
+
+    renderCategories();
+    renderProducts();
+    document.getElementById('loading').classList.add('hidden');
+    document.getElementById('products-grid').classList.remove('hidden');
+  } catch (err) {
+    console.error('Store init error:', err);
+    showLoadError(err.message || String(err));
+    return;
+  }
+  requestLocation();
+}
+
+function renderCategories() {
+  const catContainer = document.getElementById('categories-container');
+  const uniqueCats = new Set(['All']);
+  allProducts.forEach(p => { if (p.category) uniqueCats.add(p.category); });
+  Object.keys(categoryMap).forEach(c => uniqueCats.add(c));
+  let html = `<button onclick="filterCategory('All')" id="btn-All" class="cat-btn bg-indigo-600 text-white px-5 py-2 rounded-full text-sm font-semibold whitespace-nowrap shadow-sm">सब देखें (All)</button>`;
+  uniqueCats.forEach(cat => {
+    if (cat !== 'All') {
+      html += `<button onclick="filterCategory('${cat.replace(/'/g, "\\'")}')" id="btn-${cat}" class="cat-btn bg-white text-gray-700 hover:bg-gray-100 border border-gray-200 px-5 py-2 rounded-full text-sm font-semibold whitespace-nowrap shadow-sm transition">${cat}</button>`;
+    }
+  });
+  catContainer.innerHTML = html;
+}
+
+function filterCategory(catName) {
+  currentCategory = catName;
+  displayCount = PRODUCTS_PER_PAGE;
+  document.querySelectorAll('.cat-btn').forEach(btn => {
+    btn.className = 'cat-btn bg-white text-gray-700 hover:bg-gray-100 border border-gray-200 px-5 py-2 rounded-full text-sm font-semibold whitespace-nowrap shadow-sm transition';
+  });
+  const activeBtn = document.getElementById(`btn-${catName}`);
+  if (activeBtn) activeBtn.className = 'cat-btn bg-indigo-600 text-white px-5 py-2 rounded-full text-sm font-semibold whitespace-nowrap shadow-sm';
+  const bannerDesc = document.getElementById('category-banner-desc');
+  if (catName === 'All') {
+    bannerDesc.innerText = 'बेहतरीन क्वालिटी के प्रोडक्ट्स, सबसे कम दामों में। अपने पसंदीदा सामान कार्ट में जोड़ें और एक साथ ऑर्डर करें।';
+  } else if (categoryMap[catName]) {
+    bannerDesc.innerText = categoryMap[catName];
+  } else {
+    bannerDesc.innerText = `${catName} कैटेगरी के बेहतरीन प्रोडक्ट्स यहाँ देखें।`;
+  }
+  renderProducts();
+}
+
+function handleSearch(value) {
+  searchQuery = value.trim().toLowerCase();
+  displayCount = PRODUCTS_PER_PAGE;
+  renderProducts();
+}
+
+function loadMore() {
+  displayCount += PRODUCTS_PER_PAGE;
+  renderProducts();
+}
+
+function renderProducts() {
+  const grid = document.getElementById('products-grid');
+  const noProds = document.getElementById('no-products');
+  const loadMoreContainer = document.getElementById('load-more-container');
+
+  let filtered = currentCategory === 'All' ? allProducts : allProducts.filter(p => p.category.toLowerCase() === currentCategory.toLowerCase());
+  if (searchQuery) filtered = filtered.filter(p => p.name.toLowerCase().includes(searchQuery));
+
+  if (filtered.length === 0) {
+    grid.classList.add('hidden');
+    noProds.classList.remove('hidden');
+    loadMoreContainer.classList.add('hidden');
+    return;
+  }
+
+  noProds.classList.add('hidden');
+  grid.classList.remove('hidden');
+
+  const visible = filtered.slice(0, displayCount);
+
+  grid.innerHTML = visible.map(p => {
+    const inCartQty = cart[p.id] ? cart[p.id].qty : 0;
+    return `
+      <div class="bg-white rounded-2xl shadow-sm p-4 border border-gray-100 flex flex-col justify-between hover:shadow-md transition">
+        <div>
+          <div class="relative mb-2">
+            <img id="main-img-${p.id}" src="${p.image}" alt="${p.name}" class="w-full h-48 object-contain rounded-xl cursor-zoom-in" onclick="openLightbox(document.getElementById('main-img-${p.id}').src)" onerror="this.src='https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=400'">
+            <span class="absolute top-2 right-2 bg-indigo-100 text-indigo-800 text-xs font-semibold px-2.5 py-1 rounded-full border border-indigo-200">${p.category}</span>
+          </div>
+          ${p.images.length > 1 ? `
+            <div class="flex gap-2 mb-4 overflow-x-auto pb-1">
+              ${p.images.map((imgUrl, i) => `
+                <img src="${imgUrl}" onclick="document.getElementById('main-img-${p.id}').src='${imgUrl}'" class="w-12 h-12 object-contain rounded-lg border-2 ${i === 0 ? 'border-indigo-500' : 'border-gray-200'} cursor-pointer flex-shrink-0" onerror="this.style.display='none'">
+              `).join('')}
+            </div>
+          ` : `<div class="mb-4"></div>`}
+          <h4 class="font-bold text-lg mb-1 text-gray-900">${p.name}</h4>
+          <p class="text-sm text-gray-500 mb-3">${p.description}</p>
+        </div>
+        <div class="flex items-center justify-between mt-4 pt-3 border-t border-gray-50">
+          <span class="text-xl font-bold text-indigo-600">₹${p.price}</span>
+          <div>
+            ${inCartQty > 0 ? `
+              <div class="flex items-center gap-2 bg-indigo-50 border border-indigo-200 rounded-lg p-1">
+                <button onclick="changeQty(${p.id}, -1)" class="w-7 h-7 bg-white rounded font-bold text-indigo-600 shadow-sm">-</button>
+                <span class="font-bold text-sm px-1 text-indigo-900">${inCartQty}</span>
+                <button onclick="changeQty(${p.id}, 1)" class="w-7 h-7 bg-indigo-600 text-white rounded font-bold shadow-sm">+</button>
+              </div>
+            ` : `
+              <button onclick="addToCart(${p.id})" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-1 shadow-sm transition">
+                ➕ कार्ट में जोड़ें
+              </button>
+            `}
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  if (filtered.length > displayCount) {
+    loadMoreContainer.classList.remove('hidden');
+  } else {
+    loadMoreContainer.classList.add('hidden');
+  }
+}
+
+function openLightbox(url) {
+  document.getElementById('lightbox-img').src = url;
+  const lb = document.getElementById('image-lightbox');
+  lb.classList.remove('hidden');
+  lb.classList.add('flex');
+}
+
+function closeLightbox() {
+  const lb = document.getElementById('image-lightbox');
+  lb.classList.add('hidden');
+  lb.classList.remove('flex');
+}
+
+function addToCart(pId) {
+  const prod = allProducts.find(p => p.id === pId);
+  if (!prod) return;
+  if (!cart[pId]) cart[pId] = { item: prod, qty: 1 };
+  else cart[pId].qty += 1;
+  updateCartUI();
+  renderProducts();
+}
+
+function changeQty(pId, delta) {
+  if (cart[pId]) {
+    cart[pId].qty += delta;
+    if (cart[pId].qty <= 0) delete cart[pId];
+  }
+  updateCartUI();
+  renderProducts();
+}
+
+function updateCartUI() {
+  const cartKeys = Object.keys(cart);
+  let totalItems = 0;
+  let subtotal = 0;
+  cartKeys.forEach(id => { totalItems += cart[id].qty; subtotal += cart[id].qty * cart[id].item.price; });
+  deliveryStatus = calculateDelivery(subtotal);
+  const grandTotal = subtotal + (deliveryStatus.charge || 0);
+
+  const badge = document.getElementById('cart-badge-count');
+  if (totalItems > 0) { badge.innerText = totalItems; badge.classList.remove('hidden'); }
+  else badge.classList.add('hidden');
+
+  const stickyBar = document.getElementById('sticky-cart-bar');
+  if (totalItems > 0) {
+    stickyBar.classList.remove('hidden');
+    document.getElementById('sticky-cart-items').innerText = `${totalItems} सामान कार्ट में`;
+    document.getElementById('sticky-cart-total').innerText = `₹${grandTotal}`;
+  } else stickyBar.classList.add('hidden');
+
+  const modalContainer = document.getElementById('cart-items-container');
+  const orderBtn = document.getElementById('whatsapp-order-btn');
+  const deliveryBox = document.getElementById('delivery-info-box');
+  const noDeliveryBox = document.getElementById('no-delivery-box');
+  const minOrderWarning = document.getElementById('min-order-warning');
+  const freeDeliveryHint = document.getElementById('free-delivery-hint');
+
+  document.getElementById('cart-items-subtotal').innerText = `₹${subtotal}`;
+  document.getElementById('cart-grand-total').innerText = `₹${grandTotal}`;
+
+  if (cartKeys.length === 0) {
+    modalContainer.innerHTML = `
+      <div class="text-center py-16 text-gray-400">
+        <p class="text-4xl mb-3">🛒</p>
+        <p class="font-medium text-base">आपकी कार्ट खाली है!</p>
+        <p class="text-xs mt-1 text-gray-400">दुकान से सामान चुनकर कार्ट में जोड़ें।</p>
+      </div>
+    `;
+    orderBtn.classList.add('opacity-50', 'pointer-events-none');
+    deliveryBox.classList.add('hidden');
+    noDeliveryBox.classList.add('hidden');
+    return;
+  }
+
+  modalContainer.innerHTML = cartKeys.map(id => {
+    const cItem = cart[id];
+    const descStr = cItem.item.description ? ` (${cItem.item.description})` : '';
+    return `
+      <div class="flex items-center justify-between pb-3 mb-3 border-b border-gray-100">
+        <div class="flex items-center gap-3">
+          <img src="${cItem.item.image}" class="w-12 h-12 object-contain rounded-lg border border-gray-100">
+          <div>
+            <h5 class="font-bold text-sm text-gray-900">${cItem.item.name}${descStr}</h5>
+            <p class="text-xs text-indigo-600 font-semibold">₹${cItem.item.price} × ${cItem.qty} = ₹${cItem.item.price * cItem.qty}</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 bg-gray-100 p-1 rounded-lg">
+          <button onclick="changeQty(${id}, -1)" class="w-6 h-6 bg-white rounded font-bold text-gray-700 text-xs shadow-sm">-</button>
+          <span class="font-bold text-xs px-1">${cItem.qty}</span>
+          <button onclick="changeQty(${id}, 1)" class="w-6 h-6 bg-indigo-600 text-white rounded font-bold text-xs shadow-sm">+</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  let canOrder = true;
+  if (deliveryStatus.reason === 'out-of-range') {
+    deliveryBox.classList.add('hidden');
+    noDeliveryBox.classList.remove('hidden');
+    canOrder = false;
+  } else {
+    noDeliveryBox.classList.add('hidden');
+    if (deliveryStatus.reason === 'no-location') {
+      deliveryBox.classList.remove('hidden');
+      document.getElementById('delivery-distance-text').innerText = 'लोकेशन ऑन नहीं है';
+      document.getElementById('delivery-charge-text').innerText = 'लोकेशन देने पर पता चलेगा';
+    } else {
+      deliveryBox.classList.remove('hidden');
+      document.getElementById('delivery-distance-text').innerText = `${customerDistanceKm.toFixed(1)} km`;
+      document.getElementById('delivery-charge-text').innerText = deliveryStatus.isFree ? 'FREE 🎉' : `₹${deliveryStatus.charge}`;
+      if (!deliveryStatus.isFree) {
+        freeDeliveryHint.classList.remove('hidden');
+        freeDeliveryHint.innerText = `₹${deliveryStatus.freeAbove} या उससे ज़्यादा का ऑर्डर करें और डिलीवरी FREE पाएं!`;
+      } else freeDeliveryHint.classList.add('hidden');
+    }
+  }
+
+  if (subtotal < MIN_ORDER) {
+    minOrderWarning.classList.remove('hidden');
+    minOrderWarning.innerText = `⚠️ न्यूनतम ऑर्डर ₹${MIN_ORDER} का होना चाहिए। और ₹${MIN_ORDER - subtotal} का सामान जोड़ें।`;
+    canOrder = false;
+  } else minOrderWarning.classList.add('hidden');
+
+  if (canOrder) orderBtn.classList.remove('opacity-50', 'pointer-events-none');
+  else orderBtn.classList.add('opacity-50', 'pointer-events-none');
+}
+
+function toggleCartModal() {
+  document.getElementById('cart-modal').classList.toggle('hidden');
+}
+
+function sendWhatsAppOrder() {
+  const cartKeys = Object.keys(cart);
+  if (cartKeys.length === 0) return;
+  let subtotal = 0;
+  cartKeys.forEach(id => { subtotal += cart[id].qty * cart[id].item.price; });
+  const delivery = calculateDelivery(subtotal);
+  if (subtotal < MIN_ORDER) { alert(`न्यूनतम ऑर्डर ₹${MIN_ORDER} का होना चाहिए।`); return; }
+  if (delivery.reason === 'out-of-range') { alert('माफ़ कीजिए, आपकी लोकेशन डिलीवरी दायरे (3 km) से बाहर है।'); return; }
+  if (delivery.reason === 'no-location') { alert('कृपया पहले लोकेशन ऑन करें ताकि डिलीवरी चार्ज तय हो सके।'); requestLocation(); return; }
+
+  const grandTotal = subtotal + delivery.charge;
+  let msg = `🛍️ *Khushi Mart - नया ऑर्डर*\n\n`;
+  cartKeys.forEach((id, idx) => {
+    const item = cart[id].item;
+    const qty = cart[id].qty;
+    const itemTotal = item.price * qty;
+    const descStr = item.description ? ` (${item.description})` : '';
+    msg += `${idx + 1}. *${item.name}${descStr}*\n   मात्रा: ${qty} | मूल्य: ₹${itemTotal}\n`;
+  });
+  msg += `\n-----------------------------------\n`;
+  msg += `सामान का मूल्य: ₹${subtotal}\n`;
+  msg += `डिलीवरी दूरी: ${customerDistanceKm.toFixed(1)} km\n`;
+  msg += `डिलीवरी चार्ज: ${delivery.isFree ? 'FREE' : '₹' + delivery.charge}\n`;
+  msg += `💰 *कुल बिल (Grand Total): ₹${grandTotal}*\n`;
+  msg += `-----------------------------------\n\n`;
+  if (customerLocation) {
+    msg += `📍 *मेरी लाइव लोकेशन:*\nhttps://www.google.com/maps?q=${customerLocation.lat},${customerLocation.lng}\n\n`;
+  }
+  msg += `कृपया मेरा ऑर्डर कन्फर्म करें और डिलीवरी का समय बताएं। धन्यवाद!`;
+  const waUrl = `https://wa.me/${SELLER_WHATSAPP}?text=${encodeURIComponent(msg)}`;
+  window.open(waUrl, '_blank');
+}
+
+window.onload = initStore;
+</script>
+</body>
+</html>
