@@ -107,30 +107,30 @@
   </footer>
   <script>
 const SHEET_ID = '1lnPDL-dkaogbG7cQOsJNm8a_kysIUjEIUqlYTbvEl-Y';
- 
+
 const SHOP_LAT = 22.6850952;
 const SHOP_LNG = 84.5478540;
 const SELLER_WHATSAPP = '917970748217';
 const MIN_ORDER = 99;
 const PRODUCTS_PER_PAGE = 24;
- 
+
 const DELIVERY_RULES = [
   { upto: 1, freeAbove: 200, charge: 15 },
   { upto: 2, freeAbove: 300, charge: 30 },
   { upto: 3, freeAbove: 400, charge: 40 }
 ];
- 
+
 let allProducts = [];
 let categoryMap = {};
 let currentCategory = 'All';
 let searchQuery = '';
 let displayCount = PRODUCTS_PER_PAGE;
 let cart = {};
- 
+
 let customerLocation = null;
 let customerDistanceKm = null;
 let deliveryStatus = { allowed: false, charge: 0, reason: 'no-location' };
- 
+
 function getDistanceKm(lat1, lon1, lat2, lon2) {
   const R = 6371;
   const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -141,7 +141,7 @@ function getDistanceKm(lat1, lon1, lat2, lon2) {
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
 }
- 
+
 function requestLocation() {
   const statusText = document.getElementById('location-status-text');
   const btn = document.getElementById('location-btn');
@@ -167,7 +167,7 @@ function requestLocation() {
     { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
   );
 }
- 
+
 function updateLocationBar() {
   const bar = document.getElementById('location-bar');
   const statusText = document.getElementById('location-status-text');
@@ -183,7 +183,7 @@ function updateLocationBar() {
     btn.classList.add('hidden');
   }
 }
- 
+
 function calculateDelivery(subtotal) {
   if (customerDistanceKm === null) return { allowed: null, charge: 0, reason: 'no-location' };
   if (customerDistanceKm > 3) return { allowed: false, charge: 0, reason: 'out-of-range' };
@@ -192,7 +192,7 @@ function calculateDelivery(subtotal) {
   const isFree = subtotal >= rule.freeAbove;
   return { allowed: true, charge: isFree ? 0 : rule.charge, freeAbove: rule.freeAbove, isFree, reason: 'ok' };
 }
- 
+
 function fetchGVizData(sheetName) {
   return new Promise((resolve) => {
     const callbackName = 'gvizCB_' + Math.random().toString(36).slice(2) + '_' + Date.now();
@@ -227,7 +227,7 @@ function fetchGVizData(sheetName) {
     document.body.appendChild(script);
   });
 }
- 
+
 function showLoadError(message) {
   document.getElementById('loading').classList.add('hidden');
   const errBox = document.getElementById('load-error');
@@ -235,7 +235,7 @@ function showLoadError(message) {
   errBox.classList.remove('hidden');
   errDetail.innerText = message;
 }
- 
+
 function renderBanner(bannerRows) {
   const banner = document.getElementById('sale-banner');
   if (!bannerRows || !bannerRows.length) { banner.classList.add('hidden'); banner.innerHTML = ''; return; }
@@ -244,13 +244,13 @@ function renderBanner(bannerRows) {
   const text = (row.text || row.col_1 || '').toString().trim();
   const image = (row.image || row.col_2 || '').toString().trim();
   const isOn = (status === 'on' || status === 'yes' || status === 'true');
- 
+
   if (!isOn || (!text && !image)) {
     banner.classList.add('hidden');
     banner.innerHTML = '';
     return;
   }
- 
+
   if (image) {
     banner.innerHTML = `<img src="${image}" alt="Sale Banner" class="w-full max-h-60 object-cover">`;
   } else {
@@ -258,7 +258,7 @@ function renderBanner(bannerRows) {
   }
   banner.classList.remove('hidden');
 }
- 
+
 async function initStore() {
   document.getElementById('loading').classList.remove('hidden');
   try {
@@ -269,7 +269,7 @@ async function initStore() {
     let prodRows = await withTimeout(fetchGVizData('Sheet1'), 10000);
     if (!prodRows.length) prodRows = await withTimeout(fetchGVizData('Products'), 10000);
     if (!prodRows.length) throw new Error('Sheet से कोई product row नहीं मिली।');
- 
+
     let catRows = await withTimeout(fetchGVizData('Sheet2'), 10000);
     if (!catRows.length) catRows = await withTimeout(fetchGVizData('Categories'), 10000);
     catRows.forEach(row => {
@@ -277,10 +277,10 @@ async function initStore() {
       const catDesc = row.categorydescription || row.description || row.col_1 || '';
       if (catName) categoryMap[catName.toString().trim()] = catDesc.toString().trim();
     });
- 
+
     let bannerRows = await fetchGVizData('Banner');
     renderBanner(bannerRows);
- 
+
     allProducts = prodRows.map((row, index) => {
       const rawImage = row.image || row.img || row.col_3 || '';
       const images = rawImage.toString().split('|').map(s => s.trim()).filter(s => s.length > 0);
@@ -295,9 +295,9 @@ async function initStore() {
         description: row.description || row.desc || row.col_4 || ''
       };
     }).filter(p => p.name && p.name.toLowerCase() !== 'name');
- 
+
     if (!allProducts.length) throw new Error('Sheet में rows तो मिलीं लेकिन "name" column खाली/गलत नाम का है।');
- 
+
     renderCategories();
     renderProducts();
     document.getElementById('loading').classList.add('hidden');
@@ -309,7 +309,7 @@ async function initStore() {
   }
   requestLocation();
 }
- 
+
 function renderCategories() {
   const catContainer = document.getElementById('categories-container');
   const uniqueCats = new Set(['All']);
@@ -323,7 +323,7 @@ function renderCategories() {
   });
   catContainer.innerHTML = html;
 }
- 
+
 function filterCategory(catName) {
   currentCategory = catName;
   displayCount = PRODUCTS_PER_PAGE;
@@ -342,38 +342,38 @@ function filterCategory(catName) {
   }
   renderProducts();
 }
- 
+
 function handleSearch(value) {
   searchQuery = value.trim().toLowerCase();
   displayCount = PRODUCTS_PER_PAGE;
   renderProducts();
 }
- 
+
 function loadMore() {
   displayCount += PRODUCTS_PER_PAGE;
   renderProducts();
 }
- 
+
 function renderProducts() {
   const grid = document.getElementById('products-grid');
   const noProds = document.getElementById('no-products');
   const loadMoreContainer = document.getElementById('load-more-container');
- 
+
   let filtered = currentCategory === 'All' ? allProducts : allProducts.filter(p => p.category.toLowerCase() === currentCategory.toLowerCase());
   if (searchQuery) filtered = filtered.filter(p => p.name.toLowerCase().includes(searchQuery));
- 
+
   if (filtered.length === 0) {
     grid.classList.add('hidden');
     noProds.classList.remove('hidden');
     loadMoreContainer.classList.add('hidden');
     return;
   }
- 
+
   noProds.classList.add('hidden');
   grid.classList.remove('hidden');
- 
+
   const visible = filtered.slice(0, displayCount);
- 
+
   grid.innerHTML = visible.map(p => {
     const inCartQty = cart[p.id] ? cart[p.id].qty : 0;
     return `
@@ -388,8 +388,8 @@ function renderProducts() {
               ${p.images.map((imgUrl, i) => `
                 <img src="${imgUrl}" onclick="document.getElementById('main-img-${p.id}').src='${imgUrl}'" class="w-12 h-12 object-contain rounded-lg border-2 ${i === 0 ? 'border-indigo-500' : 'border-gray-200'} cursor-pointer flex-shrink-0" onerror="this.style.display='none'">
               `).join('')}
-            </div>
-          ` `<div class="mb-4"></div>`}
+ </div>
+          ` : `<div class="mb-4"></div>`}
           <h4 class="font-bold text-lg mb-1 text-gray-900">${p.name}</h4>
           <p class="text-sm text-gray-500 mb-3">${p.description}</p>
         </div>
@@ -587,4 +587,4 @@ function sendWhatsAppOrder() {
 window.onload = initStore;
 </script>
  </body>
-</html>
+</html>           
