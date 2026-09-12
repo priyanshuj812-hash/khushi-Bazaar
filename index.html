@@ -239,7 +239,7 @@ function showLoadError(message) {
 function renderBanner(bannerRows) {
   const banner = document.getElementById('sale-banner');
   if (!bannerRows || !bannerRows.length) { banner.classList.add('hidden'); banner.innerHTML = ''; return; }
-  const row = bannerRows[0];
+  const row = bannerRows[bannerRows.length - 1];
   const status = (row.status || row.col_0 || '').toString().trim().toLowerCase();
   const text = (row.text || row.col_1 || '').toString().trim();
   const image = (row.image || row.col_2 || '').toString().trim();
